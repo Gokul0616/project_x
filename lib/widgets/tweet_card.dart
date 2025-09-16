@@ -241,7 +241,7 @@ class _TweetCardState extends State<TweetCard> {
                           final textPainter = TextPainter(
                             text: textSpan,
                             maxLines: maxLines,
-                            textDirection: flutter.TextDirection.ltr,
+                            textDirection: TextDirection.ltr,
                           )..layout(maxWidth: constraints.maxWidth);
 
                           final isOverflowing =
