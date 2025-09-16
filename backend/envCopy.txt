@@ -1,0 +1,6 @@
+NODE_ENV=development
+PORT=3000
+JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-complex
+JWT_EXPIRES_IN=7d
+MONGODB_URI=mongodb+srv://test:Test123@cluster0.afoaf7o.mongodb.net/test3?retryWrites=true&w=majority&appName=Cluster0
+URL_PREFIX=http://192.168.1.19:3000/api
