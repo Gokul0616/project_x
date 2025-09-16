@@ -15,6 +15,8 @@ class TweetProvider with ChangeNotifier {
   int _currentRecommendedPage = 1;
   String? _error;
   Timer? _refreshTimer;
+  DateTime? _lastFeedTimestamp;
+  String? _lastTweetId;
   
   // Store individual tweets and their replies for detail screens
   Map<String, Tweet> _tweetDetails = {};
@@ -39,32 +41,24 @@ class TweetProvider with ChangeNotifier {
   }
 
   TweetProvider() {
-    // Auto-refresh every 30 seconds to check for new tweets
+    // Auto-refresh every 45 seconds to check for new tweets (enhanced from 30s)
     _startAutoRefresh();
   }
 
   void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 45), (_) {
       _checkForNewTweets();
     });
   }
 
   Future<void> _checkForNewTweets() async {
-    if (_tweets.isEmpty) return;
+    if (_tweets.isEmpty || _lastFeedTimestamp == null) return;
 
     try {
-      final newTweets = await ApiService.getTweets(page: 1, limit: 20);
-      final latestTweetId = _tweets.isNotEmpty ? _tweets.first.id : '';
+      // Use the new backend endpoint to check for new tweets
+      final response = await ApiService.checkForNewTweets(_lastFeedTimestamp!);
       
-      // Check if there are new tweets
-      bool hasNew = false;
-      for (var tweet in newTweets) {
-        if (tweet.id == latestTweetId) break;
-        hasNew = true;
-        break;
-      }
-
-      if (hasNew && !_hasNewTweets) {
+      if (response['hasNewTweets'] == true && !_hasNewTweets) {
         _hasNewTweets = true;
         notifyListeners();
       }
@@ -94,13 +88,24 @@ class TweetProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final newTweets = await ApiService.getTweets(page: _currentPage, limit: 20);
+      final response = await ApiService.getTweetsWithMetadata(
+        page: _currentPage, 
+        limit: 20,
+        refresh: refresh,
+        lastTweetId: _lastTweetId,
+      );
+      
+      final newTweets = response['tweets'] as List<Tweet>? ?? [];
+      _lastFeedTimestamp = DateTime.tryParse(response['timestamp'] ?? '');
       
       if (newTweets.isEmpty) {
         _hasMoreTweets = false;
       } else {
         if (refresh) {
           _tweets = newTweets;
+          if (newTweets.isNotEmpty) {
+            _lastTweetId = newTweets.first.id;
+          }
         } else {
           _tweets.addAll(newTweets);
         }
@@ -128,10 +133,13 @@ class TweetProvider with ChangeNotifier {
     if (!_hasMoreRecommended && !refresh) return;
 
     try {
-      final newRecommended = await ApiService.getRecommendedTweets(
+      final response = await ApiService.getEnhancedRecommendations(
         page: _currentRecommendedPage, 
-        limit: 10
+        limit: 10,
+        refresh: refresh,
       );
+      
+      final newRecommended = response['tweets'] as List<Tweet>? ?? [];
       
       if (newRecommended.isEmpty) {
         _hasMoreRecommended = false;
@@ -157,8 +165,10 @@ class TweetProvider with ChangeNotifier {
   }
 
   Future<void> refreshTweets() async {
-    await loadTweets(refresh: true);
-    await loadRecommendedTweets(refresh: true);
+    await Future.wait([
+      loadTweets(refresh: true),
+      loadRecommendedTweets(refresh: true),
+    ]);
   }
 
   Future<Map<String, dynamic>> createTweet(String content, {List<Map<String, dynamic>>? mediaFiles}) async {
@@ -168,12 +178,25 @@ class TweetProvider with ChangeNotifier {
       if (result['success']) {
         // Add new tweet to the beginning of the list
         _tweets.insert(0, result['tweet']);
+        
+        // Update last tweet ID
+        _lastTweetId = result['tweet'].id;
+        
         notifyListeners();
       }
       
       return result;
     } catch (e) {
       return {'success': false, 'message': 'Failed to create tweet: $e'};
+    }
+  }
+
+  // Enhanced interaction tracking
+  Future<void> _trackInteraction(String tweetId, String interactionType) async {
+    try {
+      await ApiService.trackInteraction(tweetId, interactionType);
+    } catch (e) {
+      print('Error tracking interaction: $e');
     }
   }
 
@@ -221,6 +244,9 @@ class TweetProvider with ChangeNotifier {
 
     // Notify listeners immediately for instant UI update
     notifyListeners();
+
+    // Track interaction for enhanced recommendations
+    await _trackInteraction(tweetId, 'like');
 
     // Then make the API call
     try {
@@ -325,6 +351,9 @@ class TweetProvider with ChangeNotifier {
     // Notify listeners immediately for instant UI update
     notifyListeners();
 
+    // Track interaction for enhanced recommendations
+    await _trackInteraction(tweetId, 'retweet');
+
     // Then make the API call
     try {
       final result = await ApiService.retweetTweet(tweetId);
@@ -385,6 +414,9 @@ class TweetProvider with ChangeNotifier {
 
   Future<Map<String, dynamic>> replyToTweet(String tweetId, String content) async {
     try {
+      // Track interaction
+      await _trackInteraction(tweetId, 'reply');
+      
       final result = await ApiService.replyToTweet(tweetId, content);
       
       if (result['success']) {
@@ -403,6 +435,7 @@ class TweetProvider with ChangeNotifier {
             isLiked: tweet.isLiked,
             isRetweeted: tweet.isRetweeted,
             imageUrl: tweet.imageUrl,
+            mediaFiles: tweet.mediaFiles,
             parentTweetId: tweet.parentTweetId,
             parentTweet: tweet.parentTweet,
           );
@@ -433,6 +466,9 @@ class TweetProvider with ChangeNotifier {
   // Method to update tweet details cache when viewing detail screen
   void cacheTweetDetails(Tweet tweet) {
     _tweetDetails[tweet.id] = tweet;
+    
+    // Track view interaction
+    _trackInteraction(tweet.id, 'view');
   }
 
   // User-specific tweet methods
