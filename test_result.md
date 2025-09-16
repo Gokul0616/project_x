@@ -299,12 +299,13 @@ metadata:
   search_enhancement_completed: true
 
 test_plan:
-  current_focus: []
+  current_focus: ["Enhanced Hybrid Recommendation System - All 4 Phases", "Enhanced Tweet Feed with Real-time Updates", "User Interaction & Preference Tracking"]
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
   notification_testing_completed: true
-  new_features_testing_completed: true
+  new_features_testing_completed: false
+  enhanced_recommendation_testing_required: true
 
 agent_communication:
   - agent: "testing"
