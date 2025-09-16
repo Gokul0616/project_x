@@ -37,10 +37,10 @@ const userInteractionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for efficient querying
+// Indexes for efficient querying (fixed duplicate index warning)
 userInteractionSchema.index({ userId: 1, timestamp: -1 });
 userInteractionSchema.index({ tweetId: 1, interactionType: 1 });
-userInteractionSchema.index({ userId: 1, interactionType: 1 });
+userInteractionSchema.index({ interactionType: 1 });
 userInteractionSchema.index({ timestamp: -1 });
 
 module.exports = mongoose.model('UserInteraction', userInteractionSchema);
