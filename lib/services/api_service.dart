@@ -110,8 +110,13 @@ class ApiService {
     }
   }
 
-  // Tweet Methods
-  static Future<List<Tweet>> getTweets({int page = 1, int limit = 20}) async {
+  // Enhanced Tweet Methods with new backend support
+  static Future<Map<String, dynamic>> getTweetsWithMetadata({
+    int page = 1,
+    int limit = 20,
+    bool refresh = false,
+    String? lastTweetId,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -120,13 +125,14 @@ class ApiService {
         throw Exception('No authentication token found');
       }
 
-      final uri = Uri.parse('$baseUrl/tweets').replace(
-        queryParameters: {
-          'page': page.toString(),
-          'limit': limit.toString(),
-        },
-      );
+      final queryParams = {
+        'page': page.toString(),
+        'limit': limit.toString(),
+        'refresh': refresh.toString(),
+        if (lastTweetId != null) 'lastTweetId': lastTweetId,
+      };
 
+      final uri = Uri.parse('$baseUrl/tweets').replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: {
@@ -136,17 +142,36 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((tweet) => Tweet.fromJson(tweet)).toList();
+        final data = jsonDecode(response.body);
+        
+        // Handle both old format (List) and new format (Map with metadata)
+        if (data is List) {
+          return {
+            'tweets': data.map((json) => Tweet.fromJson(json)).toList(),
+            'timestamp': DateTime.now().toIso8601String(),
+            'hasMore': data.length == limit,
+          };
+        } else {
+          return {
+            'tweets': (data['tweets'] as List).map((json) => Tweet.fromJson(json)).toList(),
+            'timestamp': data['timestamp'],
+            'hasMore': data['hasMore'] ?? true,
+            'isNewContent': data['isNewContent'] ?? false,
+          };
+        }
       } else {
-        throw Exception('Failed to load tweets: ${response.statusCode}');
+        throw Exception('Failed to load tweets');
       }
     } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+      throw Exception('Error loading tweets: $e');
     }
   }
 
-  static Future<List<Tweet>> getRecommendedTweets({int page = 1, int limit = 20}) async {
+  static Future<Map<String, dynamic>> getEnhancedRecommendations({
+    int page = 1,
+    int limit = 10,
+    bool refresh = false,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -155,12 +180,57 @@ class ApiService {
         throw Exception('No authentication token found');
       }
 
-      final uri = Uri.parse('$baseUrl/tweets/recommended').replace(
-        queryParameters: {
-          'page': page.toString(),
-          'limit': limit.toString(),
+      final queryParams = {
+        'page': page.toString(),
+        'limit': limit.toString(),
+        'refresh': refresh.toString(),
+      };
+
+      final uri = Uri.parse('$baseUrl/tweets/recommended').replace(queryParameters: queryParams);
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
       );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        // Handle both old format (List) and new format (Map with metadata)
+        if (data is List) {
+          return {
+            'tweets': data.map((json) => Tweet.fromJson(json)).toList(),
+            'timestamp': DateTime.now().toIso8601String(),
+          };
+        } else {
+          return {
+            'tweets': (data['tweets'] as List).map((json) => Tweet.fromJson(json)).toList(),
+            'timestamp': data['timestamp'],
+            'hasMore': data['hasMore'] ?? true,
+          };
+        }
+      } else {
+        throw Exception('Failed to load recommended tweets');
+      }
+    } catch (e) {
+      throw Exception('Error loading recommended tweets: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> checkForNewTweets(DateTime lastTimestamp) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final uri = Uri.parse('$baseUrl/tweets/check-new').replace(queryParameters: {
+        'timestamp': lastTimestamp.toIso8601String(),
+      });
 
       final response = await http.get(
         uri,
@@ -171,16 +241,55 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((tweet) => Tweet.fromJson(tweet)).toList();
+        return jsonDecode(response.body);
       } else {
-        throw Exception(
-          'Failed to load recommended tweets: ${response.statusCode}',
-        );
+        throw Exception('Failed to check for new tweets');
       }
     } catch (e) {
-      throw Exception('Network error: ${e.toString()}');
+      throw Exception('Error checking for new tweets: $e');
     }
+  }
+
+  static Future<Map<String, dynamic>> trackInteraction(String tweetId, String interactionType) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/tweets/track-interaction'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'tweetId': tweetId,
+          'interactionType': interactionType,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        return {'success': false, 'message': 'Failed to track interaction'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error tracking interaction: $e'};
+    }
+  }
+
+  // Keep existing methods for backward compatibility
+  static Future<List<Tweet>> getTweets({int page = 1, int limit = 20}) async {
+    final result = await getTweetsWithMetadata(page: page, limit: limit);
+    return result['tweets'] as List<Tweet>;
+  }
+
+  static Future<List<Tweet>> getRecommendedTweets({int page = 1, int limit = 10}) async {
+    final result = await getEnhancedRecommendations(page: page, limit: limit);
+    return result['tweets'] as List<Tweet>;
   }
 
   static Future<Map<String, dynamic>> uploadMediaFiles(List<File> files) async {
