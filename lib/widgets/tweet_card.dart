@@ -438,7 +438,7 @@ class _TweetCardState extends State<TweetCard> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ],
