@@ -476,15 +476,27 @@ async function getFallbackRecommendations(userId, page, limit) {
 }
 
 // @route   GET /api/tweets
-// @desc    Get all tweets (feed)
+// @desc    Get all tweets (feed) with enhanced refresh detection
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
+    const lastTweetId = req.query.lastTweetId; // For "See new posts" detection
+    const refresh = req.query.refresh === 'true';
 
-    const tweets = await Tweet.find({})
+    let query = {};
+    
+    // If checking for new posts, get tweets newer than lastTweetId
+    if (lastTweetId && !refresh) {
+      const lastTweet = await Tweet.findById(lastTweetId);
+      if (lastTweet) {
+        query.createdAt = { $gt: lastTweet.createdAt };
+      }
+    }
+
+    const tweets = await Tweet.find(query)
       .populate('author', 'username displayName profileImage')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -497,8 +509,17 @@ router.get('/', auth, async (req, res) => {
       tweetObj.isRetweeted = tweet.retweets.includes(req.user._id);
       return tweetObj;
     });
-    res.json(tweetsWithUserData);
 
+    // Add metadata for refresh functionality
+    const response = {
+      tweets: tweetsWithUserData,
+      timestamp: new Date().toISOString(),
+      page,
+      hasMore: tweetsWithUserData.length === limit,
+      isNewContent: !refresh && lastTweetId && tweetsWithUserData.length > 0
+    };
+
+    res.json(response);
 
   } catch (error) {
     console.error('Get tweets error:', error);
