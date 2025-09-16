@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -6,86 +7,8 @@ import '../models/tweet_model.dart';
 import '../providers/tweet_provider.dart';
 import '../utils/app_theme.dart';
 import '../screens/tweet/tweet_detail_screen.dart';
-import '../widgets/rich_tweet_text.dart';
+import '../screens/search/search_screen.dart';
 import '../widgets/media_grid_widget.dart';
-
-class TweetCard extends StatelessWidget {
-  final Tweet tweet;
-  final Function(Tweet)? onTweetUpdated;
-  final bool showBookmarkAction;
-  final bool isBookmarked;
-  final VoidCallback? onBookmarkToggle;
-  final bool isRecommended; // New parameter for recommendation indicator
-
-  const TweetCard({
-    super.key,
-    required this.tweet,
-    this.onTweetUpdated,
-    this.showBookmarkAction = false,
-    this.isBookmarked = false,
-    this.onBookmarkToggle,
-    this.isRecommended = false,
-  });
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inMinutes < 1) {
-      return 'now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d';
-    } else {
-      return DateFormat('MMM d').format(date);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Tweet by ${tweet.author.displayName}, ${tweet.content}',
-      button: true,
-      child: Column(
-        children: [
-          // Recommendation indicator
-          if (isRecommended)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.twitterBlue.withOpacity(0.1),
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppTheme.twitterBlue.withOpacity(0.2),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    size: 14,
-                    color: AppTheme.twitterBlue,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Recommended for you',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.twitterBlue,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          // Main tweet content
-          GestureDetector(
 //         onTap: () {
 //           Navigator.push(
 //             context,
