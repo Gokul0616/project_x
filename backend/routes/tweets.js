@@ -341,107 +341,139 @@ router.get('/trending', auth, async (req, res) => {
 });
 
 // @route   GET /api/tweets/recommended
-// @desc    Get recommended tweets for user
+// @desc    Get enhanced hybrid recommendations for user
 // @access  Private
 router.get('/recommended', auth, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-    // Simple recommendation algorithm:
-    // 1. Get tweets from users the current user follows
-    // 2. Get popular tweets (high likes/retweets)
-    // 3. Mix with recent tweets
+    const refresh = req.query.refresh === 'true'; // For "See new posts" functionality
 
-    const currentUser = await User.findById(req.user._id);
-    const followingIds = currentUser.following;
-
-    // Get tweets from followed users (50% of results)
-    const followingTweets = await Tweet.find({
-      author: { $in: followingIds }
-    })
-      .populate('author', 'username displayName profileImage')
-      .sort({ createdAt: -1 })
-      .limit(Math.floor(limit * 0.5));
-
-    // Get popular tweets (30% of results) - tweets with high engagement
-    const popularTweets = await Tweet.aggregate([
-      { $match: { author: { $nin: [req.user._id, ...followingIds] } } },
-      {
-        $addFields: {
-          engagementScore: {
-            $add: [
-              { $size: { $ifNull: ['$likes', []] } },
-              { $multiply: [{ $size: { $ifNull: ['$retweets', []] } }, 2] }
-            ]
-          }
-        }
-      },
-      { $sort: { engagementScore: -1, createdAt: -1 } },
-      { $limit: Math.floor(limit * 0.3) },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'author',
-          foreignField: '_id',
-          as: 'author'
-        }
-      },
-      { $unwind: '$author' },
-      {
-        $project: {
-          'author.password': 0,
-          'author.email': 0
-        }
-      }
-    ]);
-
-    // Get recent tweets from non-followed users (20% of results)
-    const recentTweets = await Tweet.find({
-      author: { $nin: [req.user._id, ...followingIds] }
-    })
-      .populate('author', 'username displayName profileImage')
-      .sort({ createdAt: -1 })
-      .limit(Math.floor(limit * 0.2));
-
-    // Combine and shuffle the tweets
-    let allTweets = [...followingTweets, ...popularTweets, ...recentTweets];
-
-    // Remove duplicates
-    const seenIds = new Set();
-    allTweets = allTweets.filter(tweet => {
-      if (seenIds.has(tweet._id.toString())) {
-        return false;
-      }
-      seenIds.add(tweet._id.toString());
-      return true;
-    });
-
-    // Shuffle the array for variety
-    for (let i = allTweets.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allTweets[i], allTweets[j]] = [allTweets[j], allTweets[i]];
+    // Track view interaction for learning
+    if (req.user._id) {
+      RecommendationEngine.trackInteraction(
+        req.user._id, 
+        'feed_view', 
+        'view', 
+        req.headers['x-session-id']
+      );
     }
 
-    // Apply pagination
-    const paginatedTweets = allTweets.slice(skip, skip + limit);
+    // Use enhanced hybrid recommendation system
+    let recommendedTweets = await RecommendationEngine.getHybridRecommendations(
+      req.user._id, 
+      page, 
+      limit
+    );
+
+    // If no recommendations available, fall back to basic algorithm
+    if (recommendedTweets.length === 0) {
+      recommendedTweets = await getFallbackRecommendations(req.user._id, page, limit);
+    }
 
     // Add user-specific data (isLiked, isRetweeted)
-    const tweetsWithUserData = paginatedTweets.map(tweet => {
+    const tweetsWithUserData = recommendedTweets.map(tweet => {
       const tweetObj = typeof tweet.toJSON === 'function' ? tweet.toJSON() : tweet;
-      tweetObj.isLiked = tweet.likes.includes(req.user._id);
-      tweetObj.isRetweeted = tweet.retweets.includes(req.user._id);
+      tweetObj.isLiked = tweet.likes && tweet.likes.includes(req.user._id);
+      tweetObj.isRetweeted = tweet.retweets && tweet.retweets.includes(req.user._id);
+      tweetObj.recommendationSource = tweet.source || 'hybrid'; // Track recommendation source
       return tweetObj;
     });
-    res.json(tweetsWithUserData);
+
+    // Add timestamp for refresh detection
+    const response = {
+      tweets: tweetsWithUserData,
+      timestamp: new Date().toISOString(),
+      page,
+      hasMore: tweetsWithUserData.length === limit
+    };
+
+    res.json(response);
 
   } catch (error) {
-    console.error('Get recommended tweets error:', error);
+    console.error('Get enhanced recommendations error:', error);
     res.status(500).json({
-      message: 'Server error while fetching recommended tweets'
+      message: 'Server error while fetching recommendations'
     });
   }
 });
+
+// Fallback recommendation function (original algorithm)
+async function getFallbackRecommendations(userId, page, limit) {
+  const skip = (page - 1) * limit;
+  const currentUser = await User.findById(userId);
+  const followingIds = currentUser.following || [];
+
+  // Get tweets from followed users (50% of results)
+  const followingTweets = await Tweet.find({
+    author: { $in: followingIds }
+  })
+    .populate('author', 'username displayName profileImage')
+    .sort({ createdAt: -1 })
+    .limit(Math.floor(limit * 0.5));
+
+  // Get popular tweets (30% of results) - tweets with high engagement
+  const popularTweets = await Tweet.aggregate([
+    { $match: { author: { $nin: [userId, ...followingIds] } } },
+    {
+      $addFields: {
+        engagementScore: {
+          $add: [
+            { $size: { $ifNull: ['$likes', []] } },
+            { $multiply: [{ $size: { $ifNull: ['$retweets', []] } }, 2] }
+          ]
+        }
+      }
+    },
+    { $sort: { engagementScore: -1, createdAt: -1 } },
+    { $limit: Math.floor(limit * 0.3) },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        as: 'author'
+      }
+    },
+    { $unwind: '$author' },
+    {
+      $project: {
+        'author.password': 0,
+        'author.email': 0
+      }
+    }
+  ]);
+
+  // Get recent tweets from non-followed users (20% of results)
+  const recentTweets = await Tweet.find({
+    author: { $nin: [userId, ...followingIds] }
+  })
+    .populate('author', 'username displayName profileImage')
+    .sort({ createdAt: -1 })
+    .limit(Math.floor(limit * 0.2));
+
+  // Combine and shuffle the tweets
+  let allTweets = [...followingTweets, ...popularTweets, ...recentTweets];
+
+  // Remove duplicates
+  const seenIds = new Set();
+  allTweets = allTweets.filter(tweet => {
+    if (seenIds.has(tweet._id.toString())) {
+      return false;
+    }
+    seenIds.add(tweet._id.toString());
+    return true;
+  });
+
+  // Shuffle the array for variety
+  for (let i = allTweets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allTweets[i], allTweets[j]] = [allTweets[j], allTweets[i]];
+  }
+
+  // Apply pagination
+  return allTweets.slice(skip, skip + limit);
+}
 
 // @route   GET /api/tweets
 // @desc    Get all tweets (feed)
