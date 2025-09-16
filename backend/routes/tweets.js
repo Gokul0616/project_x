@@ -900,4 +900,65 @@ router.get('/:id/replies', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/tweets/track-interaction
+// @desc    Track user interactions for recommendation learning
+// @access  Private
+router.post('/track-interaction', auth, async (req, res) => {
+  try {
+    const { tweetId, interactionType } = req.body;
+    
+    if (!tweetId || !interactionType) {
+      return res.status(400).json({
+        message: 'tweetId and interactionType are required'
+      });
+    }
+
+    await RecommendationEngine.trackInteraction(
+      req.user._id,
+      tweetId,
+      interactionType,
+      req.headers['x-session-id']
+    );
+
+    res.json({
+      message: 'Interaction tracked successfully'
+    });
+
+  } catch (error) {
+    console.error('Track interaction error:', error);
+    res.status(500).json({
+      message: 'Server error while tracking interaction'
+    });
+  }
+});
+
+// @route   GET /api/tweets/check-new
+// @desc    Check for new tweets since last timestamp (for "See new posts" functionality)
+// @access  Private
+router.get('/check-new', auth, async (req, res) => {
+  try {
+    const lastTimestamp = req.query.timestamp;
+    
+    if (!lastTimestamp) {
+      return res.json({ hasNewTweets: false, count: 0 });
+    }
+
+    const count = await Tweet.countDocuments({
+      createdAt: { $gt: new Date(lastTimestamp) }
+    });
+
+    res.json({
+      hasNewTweets: count > 0,
+      count: count,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Check new tweets error:', error);
+    res.status(500).json({
+      message: 'Server error while checking for new tweets'
+    });
+  }
+});
+
 module.exports = router;
