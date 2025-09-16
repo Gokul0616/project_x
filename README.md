@@ -1,4 +1,4 @@
-# flutter_application_1
+# Pulse
 
 A new Flutter project.
 

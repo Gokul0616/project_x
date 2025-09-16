@@ -464,6 +464,7 @@ router.get('/', auth, async (req, res) => {
       tweetObj.isRetweeted = tweet.retweets.includes(req.user._id);
       return tweetObj;
     });
+    res.json(tweetsWithUserData);
 
 
   } catch (error) {

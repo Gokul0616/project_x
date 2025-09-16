@@ -17,7 +17,7 @@
 //   final VoidCallback? onBookmarkToggle;
 
 //   const TweetCard({
-//     super.key, 
+//     super.key,
 //     required this.tweet,
 //     this.onTweetUpdated,
 //     this.showBookmarkAction = false,
@@ -291,10 +291,10 @@
 //                             ),
 
 //                             // Share/Bookmark Button
-//                             showBookmarkAction 
+//                             showBookmarkAction
 //                               ? _ActionButton(
-//                                   icon: isBookmarked 
-//                                     ? Icons.bookmark 
+//                                   icon: isBookmarked
+//                                     ? Icons.bookmark
 //                                     : Icons.bookmark_outline,
 //                                   count: 0,
 //                                   isActive: isBookmarked,
@@ -382,10 +382,11 @@
 //   }
 // }
 
+import 'package:Pulse/screens/search/search_screen.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';import 'package:flutter/material.dart' as flutter;
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as flutter;
 
-import 'package:flutter_application_1/screens/search/search_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -442,7 +443,8 @@ class _TweetCardState extends State<TweetCard> {
     const maxContentLength = 280; // Twitter-like character limit for truncation
 
     return Semantics(
-      label: 'Tweet by ${widget.tweet.author.displayName}, ${widget.tweet.content}',
+      label:
+          'Tweet by ${widget.tweet.author.displayName}, ${widget.tweet.content}',
       button: true,
       child: GestureDetector(
         onTap: () {
@@ -485,15 +487,18 @@ class _TweetCardState extends State<TweetCard> {
                     radius: 18, // Smaller for Twitter aesthetic
                     backgroundColor: AppTheme.twitterBlue,
                     backgroundImage: widget.tweet.author.profileImage != null
-                        ? CachedNetworkImageProvider(widget.tweet.author.profileImage!)
+                        ? CachedNetworkImageProvider(
+                            widget.tweet.author.profileImage!,
+                          )
                         : null,
                     child: widget.tweet.author.profileImage == null
                         ? Text(
                             widget.tweet.author.displayName.isNotEmpty
-                                ? widget.tweet.author.displayName[0].toUpperCase()
+                                ? widget.tweet.author.displayName[0]
+                                      .toUpperCase()
                                 : widget.tweet.author.username.isNotEmpty
-                                    ? widget.tweet.author.username[0].toUpperCase()
-                                    : 'U',
+                                ? widget.tweet.author.username[0].toUpperCase()
+                                : 'U',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -519,7 +524,9 @@ class _TweetCardState extends State<TweetCard> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14, // Smaller for Twitter look
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                               ),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
@@ -531,7 +538,9 @@ class _TweetCardState extends State<TweetCard> {
                             child: Text(
                               '@${widget.tweet.author.username}',
                               style: TextStyle(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
                                 fontSize: 14,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -542,7 +551,9 @@ class _TweetCardState extends State<TweetCard> {
                           Text(
                             '·',
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color,
                               fontSize: 14,
                             ),
                           ),
@@ -550,7 +561,9 @@ class _TweetCardState extends State<TweetCard> {
                           Text(
                             _formatDate(widget.tweet.createdAt),
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color,
                               fontSize: 14,
                             ),
                           ),
@@ -565,7 +578,9 @@ class _TweetCardState extends State<TweetCard> {
                             text: widget.tweet.content,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge?.color,
                               height: 1.3,
                             ),
                             context: context,
@@ -574,11 +589,11 @@ class _TweetCardState extends State<TweetCard> {
                           final textPainter = TextPainter(
                             text: textSpan,
                             maxLines: maxLines,
-                      textDirection: flutter.TextDirection.ltr,
-
+                            textDirection: flutter.TextDirection.ltr,
                           )..layout(maxWidth: constraints.maxWidth);
 
-                          final isOverflowing = textPainter.didExceedMaxLines ||
+                          final isOverflowing =
+                              textPainter.didExceedMaxLines ||
                               widget.tweet.content.length > maxContentLength;
 
                           return Column(
@@ -588,11 +603,15 @@ class _TweetCardState extends State<TweetCard> {
                                 text: widget.tweet.content,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
                                   height: 1.3,
                                 ),
                                 maxLines: _isExpanded ? null : maxLines,
-                                overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                                overflow: _isExpanded
+                                    ? null
+                                    : TextOverflow.ellipsis,
                               ),
                               if (isOverflowing && !_isExpanded)
                                 GestureDetector(
@@ -658,7 +677,9 @@ class _TweetCardState extends State<TweetCard> {
                       ] else if (widget.tweet.imageUrl != null) ...[
                         const SizedBox(height: 6),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(12), // Twitter-like rounded corners
+                          borderRadius: BorderRadius.circular(
+                            12,
+                          ), // Twitter-like rounded corners
                           child: CachedNetworkImage(
                             imageUrl: widget.tweet.imageUrl!,
                             width: double.infinity,
@@ -679,7 +700,9 @@ class _TweetCardState extends State<TweetCard> {
                               color: Theme.of(context).dividerColor,
                               child: Icon(
                                 Icons.error,
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
                               ),
                             ),
                           ),
@@ -700,7 +723,8 @@ class _TweetCardState extends State<TweetCard> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => TweetDetailScreen(tweet: widget.tweet),
+                                    builder: (context) =>
+                                        TweetDetailScreen(tweet: widget.tweet),
                                   ),
                                 );
                               },
@@ -711,8 +735,10 @@ class _TweetCardState extends State<TweetCard> {
                               isActive: widget.tweet.isRetweeted,
                               activeColor: Colors.green,
                               onTap: () {
-                                Provider.of<TweetProvider>(context, listen: false)
-                                    .retweetTweet(widget.tweet.id);
+                                Provider.of<TweetProvider>(
+                                  context,
+                                  listen: false,
+                                ).retweetTweet(widget.tweet.id);
                               },
                             ),
                             _ActionButton(
@@ -723,8 +749,10 @@ class _TweetCardState extends State<TweetCard> {
                               isActive: widget.tweet.isLiked,
                               activeColor: Colors.red,
                               onTap: () {
-                                Provider.of<TweetProvider>(context, listen: false)
-                                    .likeTweet(widget.tweet.id);
+                                Provider.of<TweetProvider>(
+                                  context,
+                                  listen: false,
+                                ).likeTweet(widget.tweet.id);
                               },
                             ),
                             widget.showBookmarkAction
@@ -741,9 +769,13 @@ class _TweetCardState extends State<TweetCard> {
                                     icon: Icons.share_outlined,
                                     count: 0,
                                     onTap: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
-                                          content: Text('Share feature coming soon!'),
+                                          content: Text(
+                                            'Share feature coming soon!',
+                                          ),
                                         ),
                                       );
                                     },
@@ -797,7 +829,11 @@ class _ActionButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: isSmallScreen ? 13 : 15, color: color), // Smaller icons
+            Icon(
+              icon,
+              size: isSmallScreen ? 13 : 15,
+              color: color,
+            ), // Smaller icons
             if (count > 0) ...[
               SizedBox(width: isSmallScreen ? 1 : 2),
               Text(
@@ -860,57 +896,66 @@ class RichTweetText extends StatelessWidget {
 
     for (final Match match in regex.allMatches(text)) {
       if (match.start > lastEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastEnd, match.start),
-          style: style ??
-              TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                height: 1.3,
-              ),
-        ));
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style:
+                style ??
+                TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  height: 1.3,
+                ),
+          ),
+        );
       }
 
       final String matchedText = match.group(0)!;
       final bool isHashtag = matchedText.startsWith('#');
       final bool isMention = matchedText.startsWith('@');
 
-      spans.add(TextSpan(
-        text: matchedText,
-        style: TextStyle(
-          fontSize: 14,
-          color: AppTheme.twitterBlue,
-          fontWeight: FontWeight.w500,
+      spans.add(
+        TextSpan(
+          text: matchedText,
+          style: TextStyle(
+            fontSize: 14,
+            color: AppTheme.twitterBlue,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: isClickable
+              ? (TapGestureRecognizer()
+                  ..onTap = () {
+                    if (isHashtag || isMention) {
+                      _handleTap(context, matchedText);
+                    }
+                  })
+              : null,
         ),
-        recognizer: isClickable
-            ? (TapGestureRecognizer()
-              ..onTap = () {
-                if (isHashtag || isMention) {
-                  _handleTap(context, matchedText);
-                }
-              })
-            : null,
-      ));
+      );
 
       lastEnd = match.end;
     }
 
     if (lastEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastEnd),
-        style: style ??
-            TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              height: 1.3,
-            ),
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(lastEnd),
+          style:
+              style ??
+              TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                height: 1.3,
+              ),
+        ),
+      );
     }
 
     if (spans.isEmpty) {
       return TextSpan(
         text: text,
-        style: style ??
+        style:
+            style ??
             TextStyle(
               fontSize: 14,
               color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -925,9 +970,7 @@ class RichTweetText extends StatelessWidget {
   static void _handleTap(BuildContext context, String text) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SearchScreen(initialQuery: text),
-      ),
+      MaterialPageRoute(builder: (context) => SearchScreen(initialQuery: text)),
     );
   }
 }

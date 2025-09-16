@@ -1,14 +1,12 @@
+import 'package:Pulse/models/tweet_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/tweet_model.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../providers/tweet_provider.dart';
 import '../../utils/app_theme.dart';
-import '../tweet/enhanced_compose_tweet_screen.dart';
-import '../../widgets/tweet_card.dart';
 import '../../widgets/new_tweets_banner.dart';
+import '../../widgets/tweet_card.dart';
+import '../tweet/enhanced_compose_tweet_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,10 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Setup scroll listener for infinite scroll
     _scrollController.addListener(_onScroll);
-    
+
     // Load tweets when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
@@ -131,7 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EnhancedComposeTweetScreen(),
+                        builder: (context) =>
+                            const EnhancedComposeTweetScreen(),
                       ),
                     );
                   },
@@ -175,7 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.twitterBlue,
                 child: ListView.builder(
                   controller: _scrollController,
-                  itemCount: allTweets.length + (tweetProvider.isLoadingMore ? 1 : 0),
+                  itemCount:
+                      allTweets.length + (tweetProvider.isLoadingMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     // Show loading indicator at the bottom
                     if (index == allTweets.length) {
@@ -183,12 +183,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: EdgeInsets.all(16.0),
                         child: Center(
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.twitterBlue),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppTheme.twitterBlue,
+                            ),
                           ),
                         ),
                       );
                     }
-                    
+
                     return TweetCard(tweet: allTweets[index]);
                   },
                 ),

@@ -1,14 +1,13 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as flutter;
-import 'package:flutter_application_1/screens/search/search_screen.dart';
-import 'package:provider/provider.dart';
+import 'package:Pulse/screens/search/search_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart' as flutter;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../models/tweet_model.dart';
 import '../../providers/tweet_provider.dart';
 import '../../utils/app_theme.dart';
-import '../../widgets/rich_tweet_text.dart';
 import '../../widgets/media_grid_widget.dart';
 import '../../widgets/reply_tweet_card.dart';
 import 'reply_tweet_screen.dart';
@@ -32,7 +31,10 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
   void initState() {
     super.initState();
     _currentTweet = widget.tweet;
-    Provider.of<TweetProvider>(context, listen: false).cacheTweetDetails(widget.tweet);
+    Provider.of<TweetProvider>(
+      context,
+      listen: false,
+    ).cacheTweetDetails(widget.tweet);
     _loadReplies();
   }
 
@@ -42,8 +44,10 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
     });
 
     try {
-      final replies = await Provider.of<TweetProvider>(context, listen: false)
-          .getTweetReplies(widget.tweet.id);
+      final replies = await Provider.of<TweetProvider>(
+        context,
+        listen: false,
+      ).getTweetReplies(widget.tweet.id);
 
       setState(() {
         _replies = replies ?? [];
@@ -54,16 +58,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
         _replies = [];
         _isLoadingReplies = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading replies: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading replies: $e')));
     }
   }
 
   Future<void> _replyToTweet() async {
     final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
     final currentTweet =
-        tweetProvider.getTweetById(widget.tweet.id) ?? _currentTweet ?? widget.tweet;
+        tweetProvider.getTweetById(widget.tweet.id) ??
+        _currentTweet ??
+        widget.tweet;
 
     final result = await Navigator.push(
       context,
@@ -78,8 +84,23 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final hour = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final hour = date.hour == 0
+        ? 12
+        : (date.hour > 12 ? date.hour - 12 : date.hour);
     final amPm = date.hour >= 12 ? 'PM' : 'AM';
     return '${hour}:${date.minute.toString().padLeft(2, '0')} $amPm · ${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -102,9 +123,13 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
     return Consumer<TweetProvider>(
       builder: (context, tweetProvider, child) {
         final displayTweet =
-            tweetProvider.getTweetById(widget.tweet.id) ?? _currentTweet ?? widget.tweet;
+            tweetProvider.getTweetById(widget.tweet.id) ??
+            _currentTweet ??
+            widget.tweet;
         final providerReplies = tweetProvider.getRepliesById(widget.tweet.id);
-        final displayReplies = providerReplies.isNotEmpty ? providerReplies : _replies;
+        final displayReplies = providerReplies.isNotEmpty
+            ? providerReplies
+            : _replies;
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -126,7 +151,10 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                     children: [
                       // Main Tweet Detail View
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -144,18 +172,35 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                     );
                                   },
                                   child: CircleAvatar(
-                                    radius: 20, // Smaller for Twitter-like aesthetic
+                                    radius:
+                                        20, // Smaller for Twitter-like aesthetic
                                     backgroundColor: AppTheme.twitterBlue,
-                                    backgroundImage: displayTweet.author.profileImage != null
-                                        ? CachedNetworkImageProvider(displayTweet.author.profileImage!)
+                                    backgroundImage:
+                                        displayTweet.author.profileImage != null
+                                        ? CachedNetworkImageProvider(
+                                            displayTweet.author.profileImage!,
+                                          )
                                         : null,
-                                    child: displayTweet.author.profileImage == null
+                                    child:
+                                        displayTweet.author.profileImage == null
                                         ? Text(
-                                            displayTweet.author.displayName.isNotEmpty
-                                                ? displayTweet.author.displayName[0].toUpperCase()
-                                                : displayTweet.author.username.isNotEmpty
-                                                    ? displayTweet.author.username[0].toUpperCase()
-                                                    : 'U',
+                                            displayTweet
+                                                    .author
+                                                    .displayName
+                                                    .isNotEmpty
+                                                ? displayTweet
+                                                      .author
+                                                      .displayName[0]
+                                                      .toUpperCase()
+                                                : displayTweet
+                                                      .author
+                                                      .username
+                                                      .isNotEmpty
+                                                ? displayTweet
+                                                      .author
+                                                      .username[0]
+                                                      .toUpperCase()
+                                                : 'U',
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -168,14 +213,17 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         displayTweet.author.displayName,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
-                                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
@@ -183,7 +231,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                       Text(
                                         '@${displayTweet.author.username}',
                                         style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
                                           fontSize: 14,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -209,7 +259,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                   text: displayTweet.content,
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
                                     height: 1.3,
                                   ),
                                   context: context,
@@ -221,8 +273,10 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                   textDirection: flutter.TextDirection.ltr,
                                 )..layout(maxWidth: constraints.maxWidth);
 
-                                final isOverflowing = textPainter.didExceedMaxLines ||
-                                    displayTweet.content.length > maxContentLength;
+                                final isOverflowing =
+                                    textPainter.didExceedMaxLines ||
+                                    displayTweet.content.length >
+                                        maxContentLength;
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,11 +285,17 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                       text: displayTweet.content,
                                       style: TextStyle(
                                         fontSize: 18,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.color,
                                         height: 1.3,
                                       ),
-                                      maxLines: _isContentExpanded ? null : maxLines,
-                                      overflow: _isContentExpanded ? null : TextOverflow.ellipsis,
+                                      maxLines: _isContentExpanded
+                                          ? null
+                                          : maxLines,
+                                      overflow: _isContentExpanded
+                                          ? null
+                                          : TextOverflow.ellipsis,
                                     ),
                                     if (isOverflowing && !_isContentExpanded)
                                       GestureDetector(
@@ -245,7 +305,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                           });
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.only(top: 4.0),
+                                          padding: const EdgeInsets.only(
+                                            top: 4.0,
+                                          ),
                                           child: Text(
                                             'Show more',
                                             style: TextStyle(
@@ -264,7 +326,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                           });
                                         },
                                         child: Padding(
-                                          padding: const EdgeInsets.only(top: 4.0),
+                                          padding: const EdgeInsets.only(
+                                            top: 4.0,
+                                          ),
                                           child: Text(
                                             'Show less',
                                             style: TextStyle(
@@ -311,18 +375,24 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                     color: Theme.of(context).dividerColor,
                                     child: const Center(
                                       child: CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.twitterBlue),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppTheme.twitterBlue,
+                                            ),
                                       ),
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) => Container(
-                                    height: 200,
-                                    color: Theme.of(context).dividerColor,
-                                    child: Icon(
-                                      Icons.error,
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                                    ),
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        height: 200,
+                                        color: Theme.of(context).dividerColor,
+                                        child: Icon(
+                                          Icons.error,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
+                                        ),
+                                      ),
                                 ),
                               ),
                             ],
@@ -333,7 +403,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                             Text(
                               _formatDate(displayTweet.createdAt),
                               style: TextStyle(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
                                 fontSize: 14,
                               ),
                             ),
@@ -345,8 +417,14 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
                                 border: Border(
-                                  top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
-                                  bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+                                  top: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 0.5,
+                                  ),
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 0.5,
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -357,14 +435,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                       '${_formatCount(displayTweet.retweetsCount)} ',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.color,
                                         fontSize: 14,
                                       ),
                                     ),
                                     Text(
                                       'Reposts',
                                       style: TextStyle(
-                                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium?.color,
                                         fontSize: 14,
                                       ),
                                     ),
@@ -374,14 +456,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                     '${_formatCount(displayTweet.repliesCount)} ',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                       fontSize: 14,
                                     ),
                                   ),
                                   Text(
                                     'Replies',
                                     style: TextStyle(
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -391,14 +477,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                       '${_formatCount(displayTweet.likesCount)} ',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge?.color,
                                         fontSize: 14,
                                       ),
                                     ),
                                     Text(
                                       'Likes',
                                       style: TextStyle(
-                                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium?.color,
                                         fontSize: 14,
                                       ),
                                     ),
@@ -412,11 +502,15 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
                                 border: Border(
-                                  bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 0.5,
+                                  ),
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   _DetailActionButton(
                                     icon: Icons.chat_bubble_outline,
@@ -429,25 +523,37 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                     activeColor: Colors.green,
                                     count: displayTweet.retweetsCount,
                                     onTap: () {
-                                      Provider.of<TweetProvider>(context, listen: false)
-                                          .retweetTweet(displayTweet.id);
+                                      Provider.of<TweetProvider>(
+                                        context,
+                                        listen: false,
+                                      ).retweetTweet(displayTweet.id);
                                     },
                                   ),
                                   _DetailActionButton(
-                                    icon: displayTweet.isLiked ? Icons.favorite : Icons.favorite_border,
+                                    icon: displayTweet.isLiked
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
                                     isActive: displayTweet.isLiked,
                                     activeColor: Colors.red,
                                     count: displayTweet.likesCount,
                                     onTap: () {
-                                      Provider.of<TweetProvider>(context, listen: false)
-                                          .likeTweet(displayTweet.id);
+                                      Provider.of<TweetProvider>(
+                                        context,
+                                        listen: false,
+                                      ).likeTweet(displayTweet.id);
                                     },
                                   ),
                                   _DetailActionButton(
                                     icon: Icons.share_outlined,
                                     onTap: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Share feature coming soon!')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Share feature coming soon!',
+                                          ),
+                                        ),
                                       );
                                     },
                                   ),
@@ -464,11 +570,14 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                           padding: EdgeInsets.all(32),
                           child: Center(
                             child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.twitterBlue),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppTheme.twitterBlue,
+                              ),
                             ),
                           ),
                         )
-                      else if (displayReplies.isEmpty && displayTweet.repliesCount > 0)
+                      else if (displayReplies.isEmpty &&
+                          displayTweet.repliesCount > 0)
                         Container(
                           padding: const EdgeInsets.all(32),
                           child: Center(
@@ -477,7 +586,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                 Icon(
                                   Icons.error_outline,
                                   size: 60,
-                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -485,14 +596,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'There are ${displayTweet.repliesCount} replies, but they failed to load. Tap to retry.',
                                   style: TextStyle(
-                                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -521,7 +636,9 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                 Icon(
                                   Icons.chat_bubble_outline,
                                   size: 60,
-                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -529,14 +646,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Be the first to reply!',
                                   style: TextStyle(
-                                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               ],
@@ -549,13 +670,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                           children: [
                             if (displayReplies.isNotEmpty)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 child: Text(
                                   'Most relevant replies',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -581,10 +707,18 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
 
               // Reply Input Section
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
-                  border: Border(top: BorderSide(color: Theme.of(context).dividerColor, width: 0.5)),
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                      width: 0.5,
+                    ),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -602,15 +736,22 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                       child: GestureDetector(
                         onTap: _replyToTweet,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
+                            color: isDarkMode
+                                ? Colors.grey[900]
+                                : Colors.grey[100],
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             'Post your reply',
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color,
                               fontSize: 15,
                             ),
                           ),
@@ -734,57 +875,66 @@ class RichTweetText extends StatelessWidget {
 
     for (final Match match in regex.allMatches(text)) {
       if (match.start > lastEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastEnd, match.start),
-          style: style ??
-              TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                height: 1.3,
-              ),
-        ));
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style:
+                style ??
+                TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  height: 1.3,
+                ),
+          ),
+        );
       }
 
       final String matchedText = match.group(0)!;
       final bool isHashtag = matchedText.startsWith('#');
       final bool isMention = matchedText.startsWith('@');
 
-      spans.add(TextSpan(
-        text: matchedText,
-        style: TextStyle(
-          fontSize: 14,
-          color: AppTheme.twitterBlue,
-          fontWeight: FontWeight.w500,
+      spans.add(
+        TextSpan(
+          text: matchedText,
+          style: TextStyle(
+            fontSize: 14,
+            color: AppTheme.twitterBlue,
+            fontWeight: FontWeight.w500,
+          ),
+          recognizer: isClickable
+              ? (TapGestureRecognizer()
+                  ..onTap = () {
+                    if (isHashtag || isMention) {
+                      _handleTap(context, matchedText);
+                    }
+                  })
+              : null,
         ),
-        recognizer: isClickable
-            ? (TapGestureRecognizer()
-              ..onTap = () {
-                if (isHashtag || isMention) {
-                  _handleTap(context, matchedText);
-                }
-              })
-            : null,
-      ));
+      );
 
       lastEnd = match.end;
     }
 
     if (lastEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastEnd),
-        style: style ??
-            TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              height: 1.3,
-            ),
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(lastEnd),
+          style:
+              style ??
+              TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                height: 1.3,
+              ),
+        ),
+      );
     }
 
     if (spans.isEmpty) {
       return TextSpan(
         text: text,
-        style: style ??
+        style:
+            style ??
             TextStyle(
               fontSize: 14,
               color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -799,9 +949,7 @@ class RichTweetText extends StatelessWidget {
   static void _handleTap(BuildContext context, String text) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SearchScreen(initialQuery: text),
-      ),
+      MaterialPageRoute(builder: (context) => SearchScreen(initialQuery: text)),
     );
   }
 }

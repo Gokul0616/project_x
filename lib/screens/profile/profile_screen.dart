@@ -496,17 +496,17 @@
 //   }
 // }
 
-import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/tweet_model.dart';
-import 'package:provider/provider.dart';
+import 'package:Pulse/models/tweet_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
-import '../../providers/tweet_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/tweet_provider.dart';
 import '../../utils/app_theme.dart';
-import '../../widgets/tweet_card.dart';
 import '../../widgets/reply_tweet_card.dart';
+import '../../widgets/tweet_card.dart';
 import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {

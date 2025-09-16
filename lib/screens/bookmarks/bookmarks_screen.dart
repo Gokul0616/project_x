@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/models/user_model.dart';
 import '../../models/tweet_model.dart';
 import '../../widgets/tweet_card.dart';
 import '../../services/api_service.dart';

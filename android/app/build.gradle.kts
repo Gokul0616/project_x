@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flutter_application_1"
+    namespace = "com.example.Pulse"
     compileSdk =  flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.flutter_application_1"
+        applicationId = "com.example.Pulse"
         minSdk = flutter.minSdkVersion // Ensure minSdk is 21 or higher
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
