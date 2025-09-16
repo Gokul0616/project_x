@@ -31,17 +31,24 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  // GlobalKey for HomeScreen to access its methods
+  final GlobalKey<HomeScreenState> _homeScreenKey = GlobalKey<HomeScreenState>();
 
-  // Removed ProfileScreen from the screens list
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const SearchScreen(),
-    const NotificationsScreen(),
-  ];
+  // Screens with proper keys
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize screens with keys
+    _screens = [
+      HomeScreen(key: _homeScreenKey),
+      const SearchScreen(),
+      const NotificationsScreen(),
+    ];
+    
     // Load notifications and refresh user data when main screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<NotificationProvider>(
@@ -50,6 +57,26 @@ class _MainScreenState extends State<MainScreen> {
       ).loadNotifications();
       Provider.of<AuthProvider>(context, listen: false).refreshUserData();
     });
+  }
+
+  // Handle home button tap - Twitter-like behavior
+  void _handleHomeTap() {
+    final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
+    
+    if (_currentIndex == 0) {
+      // Already on home tab - scroll to top and refresh
+      _homeScreenKey.currentState?.scrollToTopAndRefresh();
+    } else {
+      // Switch to home tab
+      setState(() {
+        _currentIndex = 0;
+      });
+      
+      // Scroll to top after a brief delay to ensure screen is built
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _homeScreenKey.currentState?.scrollToTopAndRefresh();
+      });
+    }
   }
 
   @override
@@ -80,9 +107,14 @@ class _MainScreenState extends State<MainScreen> {
           key: const Key('classic_bottom_nav'),
           currentIndex: _currentIndex,
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            if (index == 0) {
+              // Home button - special Twitter-like behavior
+              _handleHomeTap();
+            } else {
+              setState(() {
+                _currentIndex = index;
+              });
+            }
           },
           type: BottomNavigationBarType.fixed,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -192,7 +224,7 @@ class _MainScreenState extends State<MainScreen> {
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const FaIcon(FontAwesomeIcons.solidBell, size: 26),
+                      const FaIcon(FontAwesomeIrons.solidBell, size: 26),
                       if (notificationProvider.unreadCount > 0)
                         Positioned(
                           right: -2,
@@ -271,10 +303,13 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
         );
-        titleWidget = const FaIcon(
-          FontAwesomeIcons.twitter,
-          color: AppTheme.twitterBlue,
-          size: 28,
+        titleWidget = GestureDetector(
+          onTap: _handleHomeTap, // Make Twitter logo tappable for scroll to top
+          child: const FaIcon(
+            FontAwesomeIcons.twitter,
+            color: AppTheme.twitterBlue,
+            size: 28,
+          ),
         );
         actions = [
           IconButton(
@@ -288,60 +323,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ];
         break;
-      // case 1: // Search
-      //   leading = const SizedBox.shrink();
-      //   titleWidget = SizedBox(
-      //     width: double.infinity,
-      //     child: TextField(
-      //       autofocus: false,
-      //       decoration: InputDecoration(
-      //         hintText: 'Search Twitter',
-      //         border: OutlineInputBorder(
-      //           borderRadius: BorderRadius.circular(30),
-      //           borderSide: BorderSide.none,
-      //         ),
-      //         filled: true,
-      //         fillColor: Theme.of(context).brightness == Brightness.light
-      //             ? Colors.grey[200]
-      //             : Colors.grey[800],
-      //         prefixIcon: const Icon(Icons.search, color: Colors.grey),
-      //         contentPadding: const EdgeInsets.symmetric(vertical: 10),
-      //         isDense: true,
-      //       ),
-      //       onChanged: (query) {
-      //         // Handle search query change if needed
-      //       },
-      //     ),
-      //   );
-      //   actions = [];
-      //   break;
-      // case 1: // Search
-      //   leading = const SizedBox.shrink();
-      //   titleWidget = SizedBox(
-      //     width: double.infinity,
-      //     child: TextField(
-      //       autofocus: false,
-      //       decoration: InputDecoration(
-      //         hintText: 'Search Twitter',
-      //         border: OutlineInputBorder(
-      //           borderRadius: BorderRadius.circular(30),
-      //           borderSide: BorderSide.none,
-      //         ),
-      //         filled: true,
-      //         fillColor: Theme.of(context).brightness == Brightness.light
-      //             ? Colors.grey[200]
-      //             : Colors.grey[800],
-      //         prefixIcon: const Icon(Icons.search, color: Colors.grey),
-      //         contentPadding: const EdgeInsets.symmetric(vertical: 10),
-      //         isDense: true,
-      //       ),
-      //       onChanged: (query) {
-      //         // Handle search query change if needed
-      //       },
-      //     ),
-      //   );
-      //   actions = [];
-      //   break;
+
       case 1: // Search
         leading = null;
         titleWidget = null;

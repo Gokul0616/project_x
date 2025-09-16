@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/tweet_provider.dart';
 import '../../utils/app_theme.dart';
-import '../../widgets/new_tweets_banner.dart';
+import '../../widgets/enhanced_new_tweets_banner.dart';
 import '../../widgets/tweet_card.dart';
 import '../tweet/enhanced_compose_tweet_screen.dart';
 
@@ -12,12 +12,18 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
   static const double _scrollThreshold = 200.0;
+  
+  // Keep track of last refresh time for better UX
+  DateTime? _lastRefreshTime;
+
+  @override
+  bool get wantKeepAlive => true; // Keep state alive when switching tabs
 
   @override
   void initState() {
@@ -50,26 +56,51 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshTweets() async {
     final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
+    _lastRefreshTime = DateTime.now();
     await tweetProvider.refreshTweets();
   }
 
   void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  // Twitter-like scroll to top and refresh behavior
+  void scrollToTopAndRefresh() {
+    final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
+    
+    // Clear the new tweets flag immediately for better UX
+    tweetProvider.clearNewTweetsFlag();
+    
+    if (_scrollController.hasClients && _scrollController.offset > 0) {
+      // If user is scrolled down, scroll to top first, then refresh
+      _scrollToTop();
+      
+      // Refresh after scroll animation completes
+      Future.delayed(const Duration(milliseconds: 900), () {
+        if (mounted) {
+          _refreshTweets();
+        }
+      });
+    } else {
+      // If already at top, just refresh
+      _refreshTweets();
+    }
   }
 
   void _onNewTweetsBannerTap() {
-    final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
-    tweetProvider.clearNewTweetsFlag();
-    _scrollToTop();
-    _refreshTweets();
+    scrollToTopAndRefresh();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     return Consumer<TweetProvider>(
       builder: (context, tweetProvider, child) {
         if (tweetProvider.isLoading && tweetProvider.tweets.isEmpty) {
@@ -141,47 +172,64 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        // Create combined list of regular tweets and recommended tweets
+        // Enhanced algorithm: Create combined list of regular tweets and recommended tweets
         final allTweets = <Tweet>[];
         final tweets = tweetProvider.tweets;
         final recommendedTweets = tweetProvider.recommendedTweets;
 
-        // Interleave tweets with recommended tweets (every 5th tweet is a recommendation)
-        for (int i = 0; i < tweets.length; i++) {
-          allTweets.add(tweets[i]);
+        // Interleave tweets with recommended tweets using enhanced pattern
+        // First 3 are regular tweets, then 1 recommended, then repeat
+        int regularIndex = 0;
+        int recommendedIndex = 0;
+        int pattern = 0; // 0,1,2 = regular tweets, 3 = recommended tweet
 
-          // Add a recommended tweet every 5 regular tweets
-          if ((i + 1) % 5 == 0 && recommendedTweets.isNotEmpty) {
-            final recommendedIndex =
-                ((i + 1) ~/ 5 - 1) % recommendedTweets.length;
-            if (recommendedIndex < recommendedTweets.length) {
-              allTweets.add(recommendedTweets[recommendedIndex]);
-            }
+        while (regularIndex < tweets.length || recommendedIndex < recommendedTweets.length) {
+          if (pattern < 3 && regularIndex < tweets.length) {
+            // Add regular tweet
+            allTweets.add(tweets[regularIndex]);
+            regularIndex++;
+            pattern++;
+          } else if (pattern == 3 && recommendedIndex < recommendedTweets.length) {
+            // Add recommended tweet
+            allTweets.add(recommendedTweets[recommendedIndex]);
+            recommendedIndex++;
+            pattern = 0; // Reset pattern
+          } else if (regularIndex < tweets.length) {
+            // If no more recommended tweets, add remaining regular tweets
+            allTweets.add(tweets[regularIndex]);
+            regularIndex++;
+          } else {
+            // If no more regular tweets, add remaining recommended tweets
+            allTweets.add(recommendedTweets[recommendedIndex]);
+            recommendedIndex++;
           }
         }
 
         return Column(
           children: [
-            // New tweets banner
-            NewTweetsBanner(
+            // Enhanced new tweets banner with Twitter-like animation
+            EnhancedNewTweetsBanner(
               isVisible: tweetProvider.hasNewTweets,
               onTap: _onNewTweetsBannerTap,
+              lastRefreshTime: _lastRefreshTime,
             ),
             // Tweets list
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshTweets,
                 color: AppTheme.twitterBlue,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                displacement: 40,
                 child: ListView.builder(
                   controller: _scrollController,
-                  itemCount:
-                      allTweets.length + (tweetProvider.isLoadingMore ? 1 : 0),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: allTweets.length + (tweetProvider.isLoadingMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     // Show loading indicator at the bottom
                     if (index == allTweets.length) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
+                      return Container(
+                        padding: const EdgeInsets.all(20.0),
+                        child: const Center(
                           child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
                               AppTheme.twitterBlue,
@@ -191,7 +239,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
 
-                    return TweetCard(tweet: allTweets[index]);
+                    return TweetCard(
+                      tweet: allTweets[index],
+                      isRecommended: index < recommendedTweets.length ? 
+                        recommendedTweets.contains(allTweets[index]) : false,
+                    );
                   },
                 ),
               ),
