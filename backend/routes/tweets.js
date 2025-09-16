@@ -638,7 +638,7 @@ router.post('/', [
 });
 
 // @route   POST /api/tweets/:id/like
-// @desc    Like/unlike a tweet
+// @desc    Like/unlike a tweet with interaction tracking
 // @access  Private
 router.post('/:id/like', auth, async (req, res) => {
   try {
@@ -659,6 +659,14 @@ router.post('/:id/like', auth, async (req, res) => {
     } else {
       // Like the tweet
       tweet.likes.push(userId);
+
+      // Track interaction for recommendation learning
+      await RecommendationEngine.trackInteraction(
+        userId, 
+        req.params.id, 
+        'like', 
+        req.headers['x-session-id']
+      );
 
       // Create notification for tweet author (if not liking own tweet)
       if (tweet.author.toString() !== userId.toString()) {
