@@ -698,7 +698,7 @@ router.post('/:id/like', auth, async (req, res) => {
 });
 
 // @route   POST /api/tweets/:id/retweet
-// @desc    Retweet/unretweet a tweet
+// @desc    Retweet/unretweet a tweet with interaction tracking
 // @access  Private
 router.post('/:id/retweet', auth, async (req, res) => {
   try {
@@ -719,6 +719,14 @@ router.post('/:id/retweet', auth, async (req, res) => {
     } else {
       // Retweet
       tweet.retweets.push(userId);
+
+      // Track interaction for recommendation learning
+      await RecommendationEngine.trackInteraction(
+        userId, 
+        req.params.id, 
+        'retweet', 
+        req.headers['x-session-id']
+      );
 
       // Create notification for tweet author (if not retweeting own tweet)
       if (tweet.author.toString() !== userId.toString()) {
