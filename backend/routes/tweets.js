@@ -9,6 +9,7 @@ const Tweet = require('../models/Tweet');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { createNotification } = require('./notifications');
+const RecommendationEngine = require('../services/RecommendationEngine');
 
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegStatic);
