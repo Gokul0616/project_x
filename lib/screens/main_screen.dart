@@ -224,7 +224,7 @@ class _MainScreenState extends State<MainScreen> {
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const FaIcon(FontAwesomeIrons.solidBell, size: 26),
+                      const FaIcon(FontAwesomeIcons.solidBell, size: 26),
                       if (notificationProvider.unreadCount > 0)
                         Positioned(
                           right: -2,
