@@ -99,129 +99,129 @@ class _TweetCardState extends State<TweetCard> {
             ),
           // Main tweet content
           GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TweetDetailScreen(tweet: widget.tweet),
-            ),
-          );
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: Theme.of(context).dividerColor,
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0, // Twitter-like compactness
-              vertical: 10.0,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Avatar - Twitter-like size
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Navigate to @${widget.tweet.author.username} profile - Coming soon!',
-                        ),
-                      ),
-                    );
-                  },
-                  child: CircleAvatar(
-                    radius: 18, // Smaller for Twitter aesthetic
-                    backgroundColor: AppTheme.twitterBlue,
-                    backgroundImage: widget.tweet.author.profileImage != null
-                        ? CachedNetworkImageProvider(
-                            widget.tweet.author.profileImage!,
-                          )
-                        : null,
-                    child: widget.tweet.author.profileImage == null
-                        ? Text(
-                            widget.tweet.author.displayName.isNotEmpty
-                                ? widget.tweet.author.displayName[0]
-                                      .toUpperCase()
-                                : widget.tweet.author.username.isNotEmpty
-                                ? widget.tweet.author.username[0].toUpperCase()
-                                : 'U',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          )
-                        : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TweetDetailScreen(tweet: widget.tweet),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 0.5,
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Tweet Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User Info and Time - Twitter-style
-                      Row(
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: Text(
-                              widget.tweet.author.displayName,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14, // Smaller for Twitter look
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0, // Twitter-like compactness
+                  vertical: 10.0,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile Avatar - Twitter-like size
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Navigate to @${widget.tweet.author.username} profile - Coming soon!',
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            flex: 2,
-                            child: Text(
-                              '@${widget.tweet.author.username}',
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.color,
-                                fontSize: 14,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '·',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDate(widget.tweet.createdAt),
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                        );
+                      },
+                      child: CircleAvatar(
+                        radius: 18, // Smaller for Twitter aesthetic
+                        backgroundColor: AppTheme.twitterBlue,
+                        backgroundImage: widget.tweet.author.profileImage != null
+                            ? CachedNetworkImageProvider(
+                                widget.tweet.author.profileImage!,
+                              )
+                            : null,
+                        child: widget.tweet.author.profileImage == null
+                            ? Text(
+                                widget.tweet.author.displayName.isNotEmpty
+                                    ? widget.tweet.author.displayName[0]
+                                          .toUpperCase()
+                                    : widget.tweet.author.username.isNotEmpty
+                                    ? widget.tweet.author.username[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              )
+                            : null,
                       ),
-                      const SizedBox(height: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    // Tweet Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // User Info and Time - Twitter-style
+                          Row(
+                            children: [
+                              Flexible(
+                                flex: 2,
+                                child: Text(
+                                  widget.tweet.author.displayName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14, // Smaller for Twitter look
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                flex: 2,
+                                child: Text(
+                                  '@${widget.tweet.author.username}',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '·',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatDate(widget.tweet.createdAt),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
 
                       // Tweet Text with truncation and "Show more"
                       LayoutBuilder(
