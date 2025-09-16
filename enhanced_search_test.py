@@ -11,7 +11,7 @@ import sys
 from typing import Dict, Any, Optional
 
 class EnhancedSearchTester:
-    def __init__(self, base_url: str = "https://backend-connected.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://tweet-recommender.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.auth_token = None
