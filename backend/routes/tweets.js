@@ -348,29 +348,26 @@ router.get('/recommended', auth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const refresh = req.query.refresh === 'true'; // For "See new posts" functionality
-
     // Track view interaction for learning
     if (req.user._id) {
       RecommendationEngine.trackInteraction(
-        req.user._id, 
-        'feed_view', 
-        'view', 
+        req.user._id,
+        'feed_view',
+        'view',
         req.headers['x-session-id']
       );
     }
 
     // Use enhanced hybrid recommendation system
     let recommendedTweets = await RecommendationEngine.getHybridRecommendations(
-      req.user._id, 
-      page, 
+      req.user._id,
+      page,
       limit
     );
-
     // If no recommendations available, fall back to basic algorithm
     if (recommendedTweets.length === 0) {
       recommendedTweets = await getFallbackRecommendations(req.user._id, page, limit);
     }
-
     // Add user-specific data (isLiked, isRetweeted)
     const tweetsWithUserData = recommendedTweets.map(tweet => {
       const tweetObj = typeof tweet.toJSON === 'function' ? tweet.toJSON() : tweet;
@@ -379,7 +376,6 @@ router.get('/recommended', auth, async (req, res) => {
       tweetObj.recommendationSource = tweet.source || 'hybrid'; // Track recommendation source
       return tweetObj;
     });
-
     // Add timestamp for refresh detection
     const response = {
       tweets: tweetsWithUserData,
@@ -387,7 +383,6 @@ router.get('/recommended', auth, async (req, res) => {
       page,
       hasMore: tweetsWithUserData.length === limit
     };
-
     res.json(response);
 
   } catch (error) {
@@ -487,7 +482,6 @@ router.get('/', auth, async (req, res) => {
     const refresh = req.query.refresh === 'true';
 
     let query = {};
-    
     // If checking for new posts, get tweets newer than lastTweetId
     if (lastTweetId && !refresh) {
       const lastTweet = await Tweet.findById(lastTweetId);
@@ -662,9 +656,9 @@ router.post('/:id/like', auth, async (req, res) => {
 
       // Track interaction for recommendation learning
       await RecommendationEngine.trackInteraction(
-        userId, 
-        req.params.id, 
-        'like', 
+        userId,
+        req.params.id,
+        'like',
         req.headers['x-session-id']
       );
 
@@ -722,9 +716,9 @@ router.post('/:id/retweet', auth, async (req, res) => {
 
       // Track interaction for recommendation learning
       await RecommendationEngine.trackInteraction(
-        userId, 
-        req.params.id, 
-        'retweet', 
+        userId,
+        req.params.id,
+        'retweet',
         req.headers['x-session-id']
       );
 
@@ -906,7 +900,7 @@ router.get('/:id/replies', auth, async (req, res) => {
 router.post('/track-interaction', auth, async (req, res) => {
   try {
     const { tweetId, interactionType } = req.body;
-    
+
     if (!tweetId || !interactionType) {
       return res.status(400).json({
         message: 'tweetId and interactionType are required'
@@ -938,7 +932,7 @@ router.post('/track-interaction', auth, async (req, res) => {
 router.get('/check-new', auth, async (req, res) => {
   try {
     const lastTimestamp = req.query.timestamp;
-    
+
     if (!lastTimestamp) {
       return res.json({ hasNewTweets: false, count: 0 });
     }
