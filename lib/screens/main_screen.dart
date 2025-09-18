@@ -304,11 +304,14 @@ class _MainScreenState extends State<MainScreen> {
           ),
         );
         titleWidget = GestureDetector(
-          onTap: _handleHomeTap, // Make Twitter logo tappable for scroll to top
-          child: const FaIcon(
-            FontAwesomeIcons.twitter,
-            color: AppTheme.twitterBlue,
-            size: 28,
+          onTap: _handleHomeTap, // Make X logo tappable for scroll to top
+          child: const Text(
+            'X',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.twitterBlue,
+            ),
           ),
         );
         actions = [
