@@ -17,7 +17,6 @@ class TweetCard extends StatefulWidget {
   final bool showBookmarkAction;
   final bool isBookmarked;
   final VoidCallback? onBookmarkToggle;
-  final bool isRecommended; // New parameter for recommendation indicator
 
   const TweetCard({
     super.key,
@@ -26,7 +25,6 @@ class TweetCard extends StatefulWidget {
     this.showBookmarkAction = false,
     this.isBookmarked = false,
     this.onBookmarkToggle,
-    this.isRecommended = false,
   });
 
   @override
