@@ -228,7 +228,7 @@ class HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMix
                 child: ListView.builder(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: allTweets.length + (tweetProvider.isLoadingMore ? 1 : 0),
+                  itemCount: allTweets.length + (tweetProvider.isLoadingMore && tweetProvider.hasMoreContent ? 1 : 0),
                   itemBuilder: (context, index) {
                     // Show loading indicator at the bottom
                     if (index == allTweets.length) {
