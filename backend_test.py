@@ -1193,15 +1193,27 @@ class TwitterCloneBackendTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if isinstance(data, list):
-                    self.log_test("Recommended Tweets Pagination", True, f"Retrieved {len(data)} recommended tweets with pagination", {
+                if isinstance(data, dict) and 'tweets' in data:
+                    tweets = data['tweets']
+                    self.log_test("Recommended Tweets Pagination", True, f"Retrieved {len(tweets)} recommended tweets with enhanced metadata", {
+                        "page": 1,
+                        "limit": 10,
+                        "tweets_count": len(tweets),
+                        "has_timestamp": 'timestamp' in data,
+                        "has_more": data.get('hasMore', False),
+                        "recommendation_sources": list(set([tweet.get('recommendationSource', 'unknown') for tweet in tweets[:3]]))
+                    })
+                    return True
+                elif isinstance(data, list):
+                    # Fallback for old format
+                    self.log_test("Recommended Tweets Pagination", True, f"Retrieved {len(data)} recommended tweets (legacy format)", {
                         "page": 1,
                         "limit": 10,
                         "tweets_count": len(data)
                     })
                     return True
                 else:
-                    self.log_test("Recommended Tweets Pagination", False, "Response is not a list of tweets", data)
+                    self.log_test("Recommended Tweets Pagination", False, "Response format is incorrect", data)
                     return False
             else:
                 error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
