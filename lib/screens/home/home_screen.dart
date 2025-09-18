@@ -241,7 +241,6 @@ class HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMix
 
                     return TweetCard(
                       tweet: allTweets[index],
-                      isRecommended: recommendedTweets.contains(allTweets[index]),
                     );
                   },
                 ),
