@@ -171,18 +171,28 @@ class TweetProvider with ChangeNotifier {
     
     if (!shouldLoadRegular && !shouldLoadRecommended) return;
     
-    // Load both types in parallel for better UX
-    final futures = <Future>[];
+    _isLoadingMore = true;
+    notifyListeners();
     
-    if (shouldLoadRegular) {
-      futures.add(loadTweets(refresh: false));
+    try {
+      // Load both types in parallel for better UX
+      final futures = <Future>[];
+      
+      if (shouldLoadRegular) {
+        futures.add(loadTweets(refresh: false));
+      }
+      
+      if (shouldLoadRecommended) {
+        futures.add(loadRecommendedTweets(refresh: false));
+      }
+      
+      await Future.wait(futures);
+    } catch (e) {
+      print('Error loading more tweets: $e');
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
     }
-    
-    if (shouldLoadRecommended) {
-      futures.add(loadRecommendedTweets(refresh: false));
-    }
-    
-    await Future.wait(futures);
   }
 
   Future<void> refreshTweets() async {
