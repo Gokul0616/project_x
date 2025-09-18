@@ -48,9 +48,14 @@ class HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMix
   }
 
   void _onScroll() {
+    // Enhanced infinite scroll with better threshold detection
     if (_scrollController.position.extentAfter < _scrollThreshold) {
       final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
-      tweetProvider.loadMoreTweets();
+      
+      // Only trigger load more if we have more content available and not currently loading
+      if (tweetProvider.hasMoreContent && !tweetProvider.isLoadingMore) {
+        tweetProvider.loadMoreTweets();
+      }
     }
   }
 
