@@ -64,39 +64,6 @@ class _TweetCardState extends State<TweetCard> {
       button: true,
       child: Column(
         children: [
-          // Recommendation indicator
-          if (widget.isRecommended)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.twitterBlue.withOpacity(0.1),
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppTheme.twitterBlue.withOpacity(0.2),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    size: 14,
-                    color: AppTheme.twitterBlue,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Recommended for you',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.twitterBlue,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           // Main tweet content
           GestureDetector(
             onTap: () {
