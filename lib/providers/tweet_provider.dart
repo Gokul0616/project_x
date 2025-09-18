@@ -159,9 +159,26 @@ class TweetProvider with ChangeNotifier {
   }
 
   Future<void> loadMoreTweets() async {
-    if (_isLoadingMore || !_hasMoreTweets) return;
+    if (_isLoadingMore) return;
     
-    await loadTweets(refresh: false);
+    // Check if we need to load more tweets or recommendations based on the pattern
+    final shouldLoadRegular = _hasMoreTweets;
+    final shouldLoadRecommended = _hasMoreRecommended;
+    
+    if (!shouldLoadRegular && !shouldLoadRecommended) return;
+    
+    // Load both types in parallel for better UX
+    final futures = <Future>[];
+    
+    if (shouldLoadRegular) {
+      futures.add(loadTweets(refresh: false));
+    }
+    
+    if (shouldLoadRecommended) {
+      futures.add(loadRecommendedTweets(refresh: false));
+    }
+    
+    await Future.wait(futures);
   }
 
   Future<void> refreshTweets() async {
