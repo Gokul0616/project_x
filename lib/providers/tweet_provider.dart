@@ -133,6 +133,9 @@ class TweetProvider with ChangeNotifier {
     
     if (!_hasMoreRecommended && !refresh) return;
 
+    // Prevent multiple simultaneous calls
+    if (_isLoadingMore && !refresh) return;
+
     try {
       final response = await ApiService.getEnhancedRecommendations(
         page: _currentRecommendedPage, 
