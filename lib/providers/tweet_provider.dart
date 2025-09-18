@@ -28,6 +28,7 @@ class TweetProvider with ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool get hasNewTweets => _hasNewTweets;
   bool get hasMoreTweets => _hasMoreTweets;
+  bool get hasMoreContent => _hasMoreTweets || _hasMoreRecommended; // New getter for combined content
   String? get error => _error;
   
   // Get a specific tweet with latest data
