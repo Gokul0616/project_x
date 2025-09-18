@@ -82,11 +82,20 @@ class TweetProvider with ChangeNotifier {
     
     if (!_hasMoreTweets && !refresh) return;
 
-    _isLoading = refresh || _tweets.isEmpty;
-    _isLoadingMore = !refresh && _tweets.isNotEmpty;
+    // Only set loading states if this is the main call, not a sub-call from loadMoreTweets
+    final shouldSetLoadingState = !_isLoadingMore;
+    
+    if (shouldSetLoadingState) {
+      _isLoading = refresh || _tweets.isEmpty;
+      _isLoadingMore = !refresh && _tweets.isNotEmpty;
+    }
+    
     _error = null;
     _hasNewTweets = false;  // Clear the flag when manually refreshing
-    notifyListeners();
+    
+    if (shouldSetLoadingState) {
+      notifyListeners();
+    }
 
     try {
       final response = await ApiService.getTweetsWithMetadata(
@@ -113,14 +122,18 @@ class TweetProvider with ChangeNotifier {
         _currentPage++;
       }
       
-      _isLoading = false;
-      _isLoadingMore = false;
-      notifyListeners();
+      if (shouldSetLoadingState) {
+        _isLoading = false;
+        _isLoadingMore = false;
+        notifyListeners();
+      }
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
-      _isLoadingMore = false;
-      notifyListeners();
+      if (shouldSetLoadingState) {
+        _isLoading = false;
+        _isLoadingMore = false;
+        notifyListeners();
+      }
     }
   }
 
