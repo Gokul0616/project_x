@@ -128,7 +128,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     try {
       final messageProvider = Provider.of<MessageProvider>(context, listen: false);
-      final conversation = await messageProvider.createOrGetConversation(_user!.id);
+      final conversation = await messageProvider.createConversationWithUser(_user!.id);
       
       if (conversation != null && mounted) {
         Navigator.push(
