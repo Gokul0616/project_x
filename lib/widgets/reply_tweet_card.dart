@@ -228,20 +228,44 @@ class ReplyTweetCard extends StatelessWidget {
                         // User Info and Time
                         Row(
                           children: [
-                            Text(
-                              tweet.author.displayName,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserProfileScreen(
+                                      username: tweet.author.username,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                tweet.author.displayName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              '@${tweet.author.username}',
-                              style: TextStyle(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
-                                fontSize: 15,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserProfileScreen(
+                                      username: tweet.author.username,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                '@${tweet.author.username}',
+                                style: TextStyle(
+                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 4),
