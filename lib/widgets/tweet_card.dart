@@ -9,6 +9,7 @@ import '../providers/tweet_provider.dart';
 import '../utils/app_theme.dart';
 import '../screens/tweet/tweet_detail_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/profile/user_profile_screen.dart';
 import '../widgets/media_grid_widget.dart';
 
 class TweetCard extends StatefulWidget {
