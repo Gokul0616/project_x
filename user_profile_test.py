@@ -70,46 +70,34 @@ class UserProfileTester:
             self.log_test("Health Check", False, f"Cannot connect to backend server: {str(e)}")
             return False
     
-    def login_existing_user(self, username: str, password: str = "password123"):
-        """Login with existing user credentials"""
-        # Try to register first (in case user doesn't exist)
+    def create_test_user(self, username: str, password: str = "password123"):
+        """Create a new test user for authentication"""
+        import time
+        timestamp = str(int(time.time()))
+        unique_username = f"{username}_{timestamp}"
+        
         register_data = {
-            "username": username,
-            "email": f"{username}@example.com",
+            "username": unique_username,
+            "email": f"{unique_username}@example.com",
             "password": password,
-            "displayName": username.title()
+            "displayName": f"{username.title()} Test"
         }
         
         try:
-            # Try registration first
             register_response = self.make_request("POST", "/auth/register", register_data)
             if register_response.status_code == 201:
                 data = register_response.json()
                 self.auth_token = data["token"]
-                self.log_test(f"Register User - {username}", True, f"User {username} registered successfully")
-                return True
-        except:
-            pass  # User might already exist
-        
-        # Try login
-        login_data = {
-            "email": f"{username}@example.com",
-            "password": password
-        }
-        
-        try:
-            login_response = self.make_request("POST", "/auth/login", login_data)
-            if login_response.status_code == 200:
-                data = login_response.json()
-                self.auth_token = data["token"]
-                self.log_test(f"Login User - {username}", True, f"User {username} logged in successfully")
-                return True
+                self.test_username = unique_username
+                self.log_test(f"Create Test User - {unique_username}", True, f"User {unique_username} created successfully")
+                return unique_username
             else:
-                self.log_test(f"Login User - {username}", False, f"Login failed with status {login_response.status_code}")
-                return False
+                error_data = register_response.json() if register_response.headers.get('content-type') == 'application/json' else register_response.text
+                self.log_test(f"Create Test User - {unique_username}", False, f"Registration failed with status {register_response.status_code}", error_data)
+                return None
         except Exception as e:
-            self.log_test(f"Login User - {username}", False, f"Login request failed: {str(e)}")
-            return False
+            self.log_test(f"Create Test User - {unique_username}", False, f"Registration request failed: {str(e)}")
+            return None
     
     def test_user_profile_endpoint(self, username: str):
         """Test GET /api/users/:username endpoint"""
