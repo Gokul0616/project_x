@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
@@ -8,6 +9,7 @@ import '../../providers/message_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/message_bubble.dart';
 import '../../widgets/message_composer.dart';
+import '../../widgets/reply_composer.dart';
 
 class ChatScreen extends StatefulWidget {
   final Conversation conversation;
@@ -26,6 +28,10 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   bool _otherUserOnline = false;
   Timer? _onlineStatusTimer;
+  
+  // Reply state
+  Message? _replyingToMessage;
+  bool _showReplyComposer = false;
 
   @override
   void initState() {
@@ -389,7 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       nextMessage: nextMessage,
                       currentUserId: currentUser?.id ?? '',
                       onReact: (emoji) => _reactToMessage(message, emoji),
-                      onReply: () => _replyToMessage(message),
+                      onReply: _replyToMessage,
                     );
                   },
                 );
@@ -397,13 +403,22 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          // Message composer
-          MessageComposer(
-            controller: _messageController,
-            onSendMessage: _sendMessage,
-            onTypingChanged: _onTypingChanged,
-            conversationId: widget.conversation.id,
-          ),
+          // Reply composer (if active)
+          if (_showReplyComposer && _replyingToMessage != null)
+            ReplyComposer(
+              replyToMessage: _replyingToMessage!,
+              onSendReply: _sendReply,
+              onCancelReply: _cancelReply,
+            ),
+
+          // Regular message composer (if not replying)
+          if (!_showReplyComposer)
+            MessageComposer(
+              controller: _messageController,
+              onSendMessage: _sendMessage,
+              onTypingChanged: _onTypingChanged,
+              conversationId: widget.conversation.id,
+            ),
         ],
       ),
     );
@@ -423,6 +438,61 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _messageController.clear();
     _stopTyping();
+  }
+
+  void _sendReply(String content) async {
+    if (content.trim().isEmpty || _replyingToMessage == null) return;
+
+    print('Sending reply: "$content" to message: ${_replyingToMessage!.id}');
+    
+    final success = await _messageProvider.sendMessage(
+      widget.conversation.id,
+      content,
+      replyToId: _replyingToMessage!.id,
+    );
+
+    if (success) {
+      // Reply sent successfully
+      _cancelReply();
+      
+      // Provide haptic feedback
+      HapticFeedback.lightImpact();
+      
+      // Scroll to bottom to show new reply
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send reply. Please try again.')),
+      );
+    }
+  }
+
+  void _replyToMessage(Message message) {
+    setState(() {
+      _replyingToMessage = message;
+      _showReplyComposer = true;
+    });
+    
+    // Provide haptic feedback
+    HapticFeedback.lightImpact();
+    
+    print('Replying to message: ${message.id} from ${message.displaySenderName}');
+  }
+
+  void _cancelReply() {
+    setState(() {
+      _replyingToMessage = null;
+      _showReplyComposer = false;
+    });
   }
 
   void _onTypingChanged(bool isTyping) {
@@ -454,12 +524,6 @@ class _ChatScreenState extends State<ChatScreen> {
       widget.conversation.id,
       emoji,
     );
-  }
-
-  void _replyToMessage(Message message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Reply feature coming soon!')));
   }
 
   void _showConversationInfo() {

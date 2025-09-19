@@ -3,13 +3,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../models/message_model.dart';
 
-class MessageBubble extends StatelessWidget {
+class MessageBubble extends StatefulWidget {
   final Message message;
   final Message? previousMessage;
   final Message? nextMessage;
   final String currentUserId;
   final Function(String) onReact;
-  final VoidCallback onReply;
+  final Function(Message) onReply;  // Changed to pass the message object
 
   const MessageBubble({
     super.key,
@@ -22,142 +22,274 @@ class MessageBubble extends StatelessWidget {
   });
 
   @override
+  State<MessageBubble> createState() => _MessageBubbleState();
+}
+
+class _MessageBubbleState extends State<MessageBubble>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _replyIconAnimation;
+  
+  bool _isSwipeInProgress = false;
+  double _swipeProgress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0.15, 0),
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+    
+    _replyIconAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Fix: Ensure proper comparison by trimming and handling null cases
-    final isOwnMessage = message.senderId.trim() == currentUserId.trim();
+    // Enhanced user ID comparison with better error handling
+    final cleanSenderId = widget.message.senderId.trim();
+    final cleanCurrentUserId = widget.currentUserId.trim();
+    final isOwnMessage = cleanSenderId.isNotEmpty && 
+                        cleanCurrentUserId.isNotEmpty && 
+                        cleanSenderId == cleanCurrentUserId;
+    
     final showAvatar = _shouldShowAvatar();
     final showTimestamp = _shouldShowTimestamp();
 
-    // Debug logging
+    // Enhanced debug logging
     print('MessageBubble DEBUG:');
-    print('  message.senderId: "${message.senderId}"');
-    print('  currentUserId: "${currentUserId}"');
+    print('  message.senderId: "$cleanSenderId"');
+    print('  currentUserId: "$cleanCurrentUserId"');
     print('  isOwnMessage: $isOwnMessage');
-    print('  senderDisplayName: "${message.senderDisplayName}"');
+    print('  senderDisplayName: "${widget.message.senderDisplayName}"');
+    print('  message.content: "${widget.message.content}"');
 
-    return Container(
-      margin: EdgeInsets.only(
-        left: isOwnMessage ? 64 : 16,
-        right: isOwnMessage ? 16 : 64,
-        bottom: showTimestamp ? 16 : 4,
-      ),
-      child: Column(
-        crossAxisAlignment: isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+    return GestureDetector(
+      onHorizontalDragStart: (details) {
+        _isSwipeInProgress = true;
+        _swipeProgress = 0.0;
+      },
+      onHorizontalDragUpdate: (details) {
+        if (!_isSwipeInProgress) return;
+        
+        // Only allow swipe to reply from right to left
+        final deltaX = details.delta.dx;
+        if (deltaX < 0) {
+          _swipeProgress = (_swipeProgress - deltaX / 100).clamp(0.0, 1.0);
+          _animationController.value = _swipeProgress;
+        }
+      },
+      onHorizontalDragEnd: (details) {
+        if (!_isSwipeInProgress) return;
+        
+        _isSwipeInProgress = false;
+        
+        // Trigger reply if swipe progress is significant
+        if (_swipeProgress > 0.3) {
+          _triggerReply();
+        }
+        
+        // Reset animation
+        _animationController.reverse().then((_) {
+          _swipeProgress = 0.0;
+        });
+      },
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (!isOwnMessage && showAvatar) ...[
-                _buildAvatar(),
-                const SizedBox(width: 8),
-              ],
-              
-              Flexible(
-                child: GestureDetector(
-                  onLongPress: () => _showMessageOptions(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isOwnMessage
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18),
-                        topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(isOwnMessage ? 18 : 4),
-                        bottomRight: Radius.circular(isOwnMessage ? 4 : 18),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+          // Reply icon that appears during swipe
+          if (_swipeProgress > 0.1)
+            Positioned(
+              right: 20,
+              top: 0,
+              bottom: 0,
+              child: AnimatedBuilder(
+                animation: _replyIconAnimation,
+                builder: (context, child) {
+                  return Center(
+                    child: Transform.scale(
+                      scale: _replyIconAnimation.value,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          shape: BoxShape.circle,
                         ),
-                      ],
+                        child: const Icon(
+                          Icons.reply,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Reply to message (if applicable)
-                        if (message.replyToId != null) ...[
-                          _buildReplyPreview(context, isOwnMessage),
-                          const SizedBox(height: 8),
-                        ],
+                  );
+                },
+              ),
+            ),
+          
+          // Main message content with slide animation
+          AnimatedBuilder(
+            animation: _slideAnimation,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: _slideAnimation.value * 100, // Convert to pixels
+                child: Container(
+                  margin: EdgeInsets.only(
+                    left: isOwnMessage ? 64 : 16,
+                    right: isOwnMessage ? 16 : 64,
+                    bottom: showTimestamp ? 16 : 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (!isOwnMessage && showAvatar) ...[
+                            _buildAvatar(),
+                            const SizedBox(width: 8),
+                          ],
+                          
+                          Flexible(
+                            child: GestureDetector(
+                              onLongPress: () => _showMessageOptions(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: isOwnMessage
+                                      ? Theme.of(context).primaryColor
+                                      : Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(18),
+                                    topRight: const Radius.circular(18),
+                                    bottomLeft: Radius.circular(isOwnMessage ? 18 : 4),
+                                    bottomRight: Radius.circular(isOwnMessage ? 4 : 18),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Reply to message (if applicable)
+                                    if (widget.message.replyToId != null) ...[
+                                      _buildReplyPreview(context, isOwnMessage),
+                                      const SizedBox(height: 8),
+                                    ],
 
-                        // Media content
-                        if (message.mediaFiles.isNotEmpty) ...[
-                          _buildMediaContent(context),
-                          if (message.content.isNotEmpty) const SizedBox(height: 8),
-                        ],
+                                    // Media content
+                                    if (widget.message.mediaFiles.isNotEmpty) ...[
+                                      _buildMediaContent(context),
+                                      if (widget.message.content.isNotEmpty) const SizedBox(height: 8),
+                                    ],
 
-                        // Text content
-                        if (message.content.isNotEmpty)
-                          Text(
-                            message.content,
-                            style: TextStyle(
-                              color: isOwnMessage ? Colors.white : null,
-                              fontSize: 16,
+                                    // Text content
+                                    if (widget.message.content.isNotEmpty)
+                                      Text(
+                                        widget.message.content,
+                                        style: TextStyle(
+                                          color: isOwnMessage ? Colors.white : null,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+
+                                    // Reactions
+                                    if (widget.message.reactions.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      _buildReactions(context),
+                                    ],
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
 
-                        // Reactions
-                        if (message.reactions.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          _buildReactions(context),
+                          if (isOwnMessage && showAvatar) ...[
+                            const SizedBox(width: 8),
+                            _buildAvatar(),
+                          ],
                         ],
+                      ),
+
+                      // Timestamp and read status
+                      if (showTimestamp) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              _formatTimestamp(widget.message.createdAt),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            if (isOwnMessage) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                widget.message.isRead ? Icons.done_all : Icons.done,
+                                size: 16,
+                                color: widget.message.isRead ? Colors.blue : Colors.grey.shade600,
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-              ),
-
-              if (isOwnMessage && showAvatar) ...[
-                const SizedBox(width: 8),
-                _buildAvatar(),
-              ],
-            ],
+              );
+            },
           ),
-
-          // Timestamp and read status
-          if (showTimestamp) ...[
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
-              children: [
-                Text(
-                  _formatTimestamp(message.createdAt),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                if (isOwnMessage) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    message.isRead ? Icons.done_all : Icons.done,
-                    size: 16,
-                    color: message.isRead ? Colors.blue : Colors.grey.shade600,
-                  ),
-                ],
-              ],
-            ),
-          ],
         ],
       ),
     );
+  }
+
+  void _triggerReply() {
+    // Provide haptic feedback
+    HapticFeedback.lightImpact();
+    
+    // Trigger reply with the message object
+    widget.onReply(widget.message);
   }
 
   Widget _buildAvatar() {
     return CircleAvatar(
       radius: 12,
       backgroundColor: Colors.grey.shade300,
-      backgroundImage: message.senderProfileImage != null
-          ? CachedNetworkImageProvider(message.senderProfileImage!)
+      backgroundImage: widget.message.senderProfileImage != null
+          ? CachedNetworkImageProvider(widget.message.senderProfileImage!)
           : null,
-      child: message.senderProfileImage == null
+      child: widget.message.senderProfileImage == null
           ? Text(
-              (message.senderDisplayName ?? message.senderUsername ?? '').isNotEmpty 
-                  ? (message.senderDisplayName ?? message.senderUsername ?? '')[0].toUpperCase()
+              (widget.message.senderDisplayName ?? widget.message.senderUsername ?? '').isNotEmpty 
+                  ? (widget.message.senderDisplayName ?? widget.message.senderUsername ?? '')[0].toUpperCase()
                   : '?',
               style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
             )
@@ -178,14 +310,28 @@ class MessageBubble extends StatelessWidget {
           ),
         ),
       ),
-      child: Text(
-        'Reply to message', // TODO: Fetch original message content using replyToId
-        style: TextStyle(
-          color: isOwnMessage ? Colors.white70 : Colors.grey.shade700,
-          fontSize: 14,
-        ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Replying to ${widget.message.senderDisplayName ?? widget.message.senderUsername ?? 'Unknown'}',
+            style: TextStyle(
+              color: isOwnMessage ? Colors.white70 : Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Original message content', // TODO: Fetch original message content using replyToId
+            style: TextStyle(
+              color: isOwnMessage ? Colors.white70 : Colors.grey.shade700,
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -194,7 +340,7 @@ class MessageBubble extends StatelessWidget {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: message.mediaFiles.map((media) {
+      children: widget.message.mediaFiles.map((media) {
         return GestureDetector(
           onTap: () => _showMediaViewer(context, media),
           child: Container(
@@ -252,7 +398,7 @@ class MessageBubble extends StatelessWidget {
     final reactionGroups = <String, List<MessageReaction>>{};
     
     // Group reactions by emoji
-    for (final reaction in message.reactions) {
+    for (final reaction in widget.message.reactions) {
       final emoji = reaction.emoji;
       reactionGroups[emoji] ??= [];
       reactionGroups[emoji]!.add(reaction);
@@ -264,10 +410,10 @@ class MessageBubble extends StatelessWidget {
       children: reactionGroups.entries.map((entry) {
         final emoji = entry.key;
         final reactions = entry.value;
-        final hasUserReacted = reactions.any((r) => r.userId == currentUserId);
+        final hasUserReacted = reactions.any((r) => r.userId == widget.currentUserId);
 
         return GestureDetector(
-          onTap: () => onReact(emoji),
+          onTap: () => widget.onReact(emoji),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -305,16 +451,16 @@ class MessageBubble extends StatelessWidget {
   }
 
   bool _shouldShowAvatar() {
-    if (message.senderId == currentUserId) return false;
+    if (widget.message.senderId == widget.currentUserId) return false;
     
-    return nextMessage == null || 
-           nextMessage!.senderId != message.senderId ||
-           _isDifferentTimeGroup(message.createdAt, nextMessage!.createdAt);
+    return widget.nextMessage == null || 
+           widget.nextMessage!.senderId != widget.message.senderId ||
+           _isDifferentTimeGroup(widget.message.createdAt, widget.nextMessage!.createdAt);
   }
 
   bool _shouldShowTimestamp() {
-    return nextMessage == null || 
-           _isDifferentTimeGroup(message.createdAt, nextMessage!.createdAt);
+    return widget.nextMessage == null || 
+           _isDifferentTimeGroup(widget.message.createdAt, widget.nextMessage!.createdAt);
   }
 
   bool _isDifferentTimeGroup(DateTime time1, DateTime time2) {
@@ -349,7 +495,7 @@ class MessageBubble extends StatelessWidget {
                 title: const Text('Reply'),
                 onTap: () {
                   Navigator.pop(context);
-                  onReply();
+                  widget.onReply(widget.message);
                 },
               ),
               ListTile(
@@ -365,14 +511,36 @@ class MessageBubble extends StatelessWidget {
                 title: const Text('Copy text'),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement copy text
+                  _copyMessageText();
                 },
               ),
+              if (widget.message.senderId == widget.currentUserId) ...[
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Delete message', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: Implement delete message functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Delete message feature coming soon!')),
+                    );
+                  },
+                ),
+              ],
             ],
           ),
         );
       },
     );
+  }
+
+  void _copyMessageText() {
+    if (widget.message.content.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: widget.message.content));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Message copied to clipboard')),
+      );
+    }
   }
 
   void _showReactionPicker(BuildContext context) {
@@ -388,7 +556,7 @@ class MessageBubble extends StatelessWidget {
               return GestureDetector(
                 onTap: () {
                   Navigator.pop(context);
-                  onReact(emoji);
+                  widget.onReact(emoji);
                 },
                 child: Container(
                   margin: const EdgeInsets.all(4),
