@@ -146,6 +146,12 @@ class MessageProvider with ChangeNotifier {
   void _handleNewMessage(Message message) {
     final conversationId = message.conversationId;
     
+    print('MessageProvider: Received new message via WebSocket');
+    print('  messageId: ${message.id}');
+    print('  conversationId: $conversationId');
+    print('  senderId: ${message.senderId}');
+    print('  content: "${message.content}"');
+    
     // Add message to conversation messages
     final messages = _conversationMessages[conversationId] ?? [];
     _conversationMessages[conversationId] = [message, ...messages];
