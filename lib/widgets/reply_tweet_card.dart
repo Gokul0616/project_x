@@ -187,10 +187,11 @@ class ReplyTweetCard extends StatelessWidget {
                   // Profile Avatar
                   GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Navigate to @${tweet.author.username} profile - Coming soon!',
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                            username: tweet.author.username,
                           ),
                         ),
                       );
