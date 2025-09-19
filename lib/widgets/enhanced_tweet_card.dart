@@ -241,10 +241,11 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                     // Profile Avatar with X-style interactions
                     GestureDetector(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Navigate to @${widget.tweet.author.username} profile',
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserProfileScreen(
+                              username: widget.tweet.author.username,
                             ),
                           ),
                         );
