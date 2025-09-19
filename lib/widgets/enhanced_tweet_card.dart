@@ -339,14 +339,26 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                               const SizedBox(width: 4),
                               Flexible(
                                 flex: 2,
-                                child: Text(
-                                  '@${widget.tweet.author.username}',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 15,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(
+                                          username: widget.tweet.author.username,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    '@${widget.tweet.author.username}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 15,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(width: 4),
