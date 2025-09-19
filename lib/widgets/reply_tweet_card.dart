@@ -117,24 +117,36 @@ class ReplyTweetCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: AppTheme.twitterBlue,
-                              backgroundImage: tweet.parentTweet!.author.profileImage != null
-                                  ? CachedNetworkImageProvider(tweet.parentTweet!.author.profileImage!)
-                                  : null,
-                              child: tweet.parentTweet!.author.profileImage == null
-                                  ? Text(
-                                      tweet.parentTweet!.author.displayName.isNotEmpty
-                                          ? tweet.parentTweet!.author.displayName[0].toUpperCase()
-                                          : 'U',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    )
-                                  : null,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserProfileScreen(
+                                      username: tweet.parentTweet!.author.username,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppTheme.twitterBlue,
+                                backgroundImage: tweet.parentTweet!.author.profileImage != null
+                                    ? CachedNetworkImageProvider(tweet.parentTweet!.author.profileImage!)
+                                    : null,
+                                child: tweet.parentTweet!.author.profileImage == null
+                                    ? Text(
+                                        tweet.parentTweet!.author.displayName.isNotEmpty
+                                            ? tweet.parentTweet!.author.displayName[0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      )
+                                    : null,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
