@@ -1920,15 +1920,15 @@ class TwitterCloneBackendTester:
         return passed == total
 
 def main():
-    """Main test execution for new features"""
+    """Main test execution for messaging functionality"""
     tester = TwitterCloneBackendTester()
-    success = tester.run_new_features_tests()
+    success = tester.run_messaging_tests()
     
     if success:
-        print("\n🎉 All new features tests passed! Pagination and drawer APIs are working correctly.")
+        print("\n🎉 All messaging tests passed! User profile and messaging APIs are working correctly.")
         sys.exit(0)
     else:
-        print("\n⚠️ Some new features tests failed. Check the output above for details.")
+        print("\n⚠️ Some messaging tests failed. Check the output above for details.")
         sys.exit(1)
 
 if __name__ == "__main__":
