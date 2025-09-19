@@ -11,7 +11,7 @@ import sys
 from typing import Dict, Any, Optional
 
 class TwitterCloneBackendTester:
-    def __init__(self, base_url: str = "http://localhost:8001"):
+    def __init__(self, base_url: str = "http://192.168.1.19:3000"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.auth_token = None
