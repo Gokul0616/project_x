@@ -377,25 +377,27 @@ class MessageProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // If WebSocket is connected and no media files, use WebSocket
-      if (_webSocketService.isConnected && (mediaFilePaths == null || mediaFilePaths.isEmpty)) {
-        _webSocketService.sendMessage(
-          conversationId: conversationId,
-          content: content,
-          replyToId: replyToId,
-        );
-        return true; // WebSocket will handle the response via event listeners
-      } else {
-        // Fallback to HTTP API for media uploads
-        final response = await ApiService.sendMessage(
-          conversationId,
-          content,
-          mediaFilePaths: mediaFilePaths,
-          replyToId: replyToId,
-        );
+      print('MessageProvider: Sending message via HTTP API');
+      print('  conversationId: $conversationId');
+      print('  content: "$content"');
+      
+      // Always use HTTP API for now to ensure message consistency
+      final response = await ApiService.sendMessage(
+        conversationId,
+        content,
+        mediaFilePaths: mediaFilePaths,
+        replyToId: replyToId,
+      );
 
-        if (response['success']) {
+      print('MessageProvider: Response received: ${response['success']}');
+      
+      if (response['success']) {
         final newMessage = Message.fromJson(response['message']);
+        
+        print('MessageProvider: New message created');
+        print('  messageId: ${newMessage.id}');
+        print('  senderId: ${newMessage.senderId}');
+        print('  content: "${newMessage.content}"');
         
         // Add message to conversation
         final messages = _conversationMessages[conversationId] ?? [];
@@ -412,9 +414,8 @@ class MessageProvider with ChangeNotifier {
 
         notifyListeners();
         return true;
-        } else {
-          throw Exception(response['message'] ?? 'Failed to send message');
-        }
+      } else {
+        throw Exception(response['message'] ?? 'Failed to send message');
       }
     } catch (e) {
       print('Error sending message: $e');
