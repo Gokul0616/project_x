@@ -354,6 +354,7 @@ test_plan:
   notification_testing_completed: true
   new_features_testing_completed: false
   enhanced_recommendation_testing_required: true
+  messaging_testing_completed: true
   test_only_new_features: true
 
 agent_communication:
