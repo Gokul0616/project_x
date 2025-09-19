@@ -23,9 +23,17 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOwnMessage = message.senderId == currentUserId;
+    // Fix: Ensure proper comparison by trimming and handling null cases
+    final isOwnMessage = message.senderId.trim() == currentUserId.trim();
     final showAvatar = _shouldShowAvatar();
     final showTimestamp = _shouldShowTimestamp();
+
+    // Debug logging
+    print('MessageBubble DEBUG:');
+    print('  message.senderId: "${message.senderId}"');
+    print('  currentUserId: "${currentUserId}"');
+    print('  isOwnMessage: $isOwnMessage');
+    print('  senderDisplayName: "${message.senderDisplayName}"');
 
     return Container(
       margin: EdgeInsets.only(

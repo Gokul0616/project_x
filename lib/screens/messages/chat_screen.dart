@@ -24,6 +24,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late MessageProvider _messageProvider;
   Timer? _typingTimer;
   bool _isTyping = false;
+  bool _otherUserOnline = false;
+  Timer? _onlineStatusTimer;
 
   @override
   void initState() {
@@ -39,6 +41,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Setup pagination
     _scrollController.addListener(_onScroll);
+    
+    // Initialize online status checking
+    _startOnlineStatusCheck();
   }
 
   @override
@@ -46,11 +51,36 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollController.dispose();
     _messageController.dispose();
     _typingTimer?.cancel();
+    _onlineStatusTimer?.cancel();
 
     // Leave the conversation room
     _messageProvider.leaveConversationRoom(widget.conversation.id);
 
     super.dispose();
+  }
+
+  void _startOnlineStatusCheck() {
+    // Check online status every 30 seconds
+    _onlineStatusTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _checkOtherUserOnlineStatus();
+    });
+    
+    // Initial check
+    _checkOtherUserOnlineStatus();
+  }
+
+  void _checkOtherUserOnlineStatus() {
+    final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+    if (currentUser != null && !widget.conversation.isGroup) {
+      final otherParticipant = widget.conversation.getOtherParticipant(currentUser.id);
+      if (otherParticipant != null) {
+        // Here you would implement actual online status check via WebSocket or API
+        // For now, we'll show online when WebSocket is connected
+        setState(() {
+          _otherUserOnline = _messageProvider.isWebSocketConnected;
+        });
+      }
+    }
   }
 
   void _onScroll() {
@@ -78,6 +108,12 @@ class _ChatScreenState extends State<ChatScreen> {
     final displayImage = widget.conversation.isGroup
         ? (widget.conversation.groupImage ?? '')
         : (otherParticipant?.profileImage ?? '');
+
+    // Debug logging
+    print('ChatScreen DEBUG:');
+    print('  currentUser.id: "${currentUser?.id}"');
+    print('  conversation.id: "${widget.conversation.id}"');
+    print('  otherParticipant: "${otherParticipant?.displayName}"');
 
     return Scaffold(
       appBar: AppBar(
@@ -128,16 +164,59 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                       }
-                      return Text(
-                        messageProvider.isWebSocketConnected
-                            ? 'Online'
-                            : 'Offline',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: messageProvider.isWebSocketConnected
-                              ? Colors.green
-                              : Colors.grey.shade600,
-                        ),
+                      
+                      // Improved online status logic
+                      String statusText;
+                      Color statusColor;
+                      
+                      if (widget.conversation.isGroup) {
+                        statusText = messageProvider.isWebSocketConnected ? 'Active' : 'Inactive';
+                        statusColor = messageProvider.isWebSocketConnected ? Colors.green : Colors.grey.shade600;
+                      } else {
+                        // For direct messages, show more realistic status
+                        if (messageProvider.isWebSocketConnected) {
+                          // Check if the other user was recently active
+                          final lastActivity = widget.conversation.lastActivity;
+                          final timeDiff = DateTime.now().difference(lastActivity);
+                          
+                          if (timeDiff.inMinutes < 5) {
+                            statusText = 'Online';
+                            statusColor = Colors.green;
+                          } else if (timeDiff.inMinutes < 60) {
+                            statusText = 'Active ${timeDiff.inMinutes}m ago';
+                            statusColor = Colors.orange;
+                          } else if (timeDiff.inHours < 24) {
+                            statusText = 'Active ${timeDiff.inHours}h ago';
+                            statusColor = Colors.grey.shade600;
+                          } else {
+                            statusText = 'Active ${timeDiff.inDays}d ago';
+                            statusColor = Colors.grey.shade600;
+                          }
+                        } else {
+                          statusText = 'Offline';
+                          statusColor = Colors.grey.shade600;
+                        }
+                      }
+                      
+                      return Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -150,13 +229,17 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.videocam_outlined),
             onPressed: () {
-              // TODO: Implement video call
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Video call feature coming soon!')),
+              );
             },
           ),
           IconButton(
             icon: const Icon(Icons.call_outlined),
             onPressed: () {
-              // TODO: Implement voice call
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Voice call feature coming soon!')),
+              );
             },
           ),
           PopupMenuButton<String>(
@@ -166,10 +249,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   _showConversationInfo();
                   break;
                 case 'mute':
-                  // TODO: Implement mute
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Mute feature coming soon!')),
+                  );
                   break;
                 case 'delete':
                   _showDeleteConfirmation();
+                  break;
+                case 'clear':
+                  _showClearChatConfirmation();
                   break;
               }
             },
@@ -181,6 +269,10 @@ class _ChatScreenState extends State<ChatScreen> {
               const PopupMenuItem(
                 value: 'mute',
                 child: Text('Mute conversation'),
+              ),
+              const PopupMenuItem(
+                value: 'clear',
+                child: Text('Clear chat'),
               ),
               const PopupMenuItem(
                 value: 'delete',
@@ -321,6 +413,8 @@ class _ChatScreenState extends State<ChatScreen> {
     if (content.trim().isEmpty && (mediaFiles == null || mediaFiles.isEmpty))
       return;
 
+    print('Sending message: "$content"');
+    
     _messageProvider.sendMessage(
       widget.conversation.id,
       content,
@@ -363,7 +457,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _replyToMessage(Message message) {
-    // TODO: Implement reply functionality
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Reply feature coming soon!')));
@@ -376,21 +469,38 @@ class _ChatScreenState extends State<ChatScreen> {
         title: const Text('Conversation Info'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.conversation.isGroup) ...[
               Text(
                 'Group: ${widget.conversation.groupName ?? "Unnamed Group"}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 8),
               Text('Participants: ${widget.conversation.participants.length}'),
-            ] else ...[
-              Text(
-                'Direct message with ${widget.conversation.getOtherParticipant(Provider.of<AuthProvider>(context, listen: false).user?.id ?? '')?.displayName ?? "Unknown User"}',
+              const SizedBox(height: 16),
+              const Text('Members:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...widget.conversation.participants.map((participant) => 
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Text('• ${participant.displayName}'),
+                ),
               ),
+            ] else ...[
+              final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
+              final otherParticipant = widget.conversation.getOtherParticipant(currentUser?.id ?? '');
+              Text(
+                'Direct message with ${otherParticipant?.displayName ?? "Unknown User"}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text('Username: @${otherParticipant?.username ?? "unknown"}'),
             ],
             const SizedBox(height: 16),
             Text(
               'Created: ${widget.conversation.createdAt.toString().split(' ')[0]}',
             ),
+            const SizedBox(height: 4),
             Text('Last activity: ${widget.conversation.formattedLastActivity}'),
           ],
         ),
@@ -421,10 +531,40 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close chat screen
-              // TODO: Implement conversation deletion
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Delete conversation feature coming soon!')),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showClearChatConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Chat'),
+        content: const Text(
+          'Are you sure you want to clear all messages in this chat? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Clear chat feature coming soon!')),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear'),
           ),
         ],
       ),
