@@ -1,4 +1,5 @@
 import 'package:Pulse/models/tweet_model.dart';
+import 'package:Pulse/widgets/enhanced_tweet_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,15 +16,15 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> 
+class HomeScreenState extends State<HomeScreen>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
   static const double _scrollThreshold = 200.0;
-  
+
   // Keep track of last refresh time for better UX
   DateTime? _lastRefreshTime;
-  
+
   // Timeline state
   int _selectedTimelineIndex = 0; // 0 = For You, 1 = Following
 
@@ -33,7 +34,7 @@ class HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize tab controller for timeline switching
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_onTimelineChanged);
@@ -72,7 +73,7 @@ class HomeScreenState extends State<HomeScreen>
     // Enhanced infinite scroll with better threshold detection
     if (_scrollController.position.extentAfter < _scrollThreshold) {
       final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
-      
+
       // Only trigger load more if we have more content available and not currently loading
       if (tweetProvider.hasMoreContent && !tweetProvider.isLoadingMore) {
         tweetProvider.loadMoreTweets();
@@ -99,14 +100,14 @@ class HomeScreenState extends State<HomeScreen>
   // X-style scroll to top and refresh behavior
   void scrollToTopAndRefresh() {
     final tweetProvider = Provider.of<TweetProvider>(context, listen: false);
-    
+
     // Clear the new tweets flag immediately for better UX
     tweetProvider.clearNewTweetsFlag();
-    
+
     if (_scrollController.hasClients && _scrollController.offset > 0) {
       // If user is scrolled down, scroll to top first, then refresh
       _scrollToTop();
-      
+
       // Refresh after scroll animation completes
       Future.delayed(const Duration(milliseconds: 900), () {
         if (mounted) {
@@ -146,7 +147,8 @@ class HomeScreenState extends State<HomeScreen>
     int recommendedIndex = 0;
     int pattern = 0; // 0,1,2 = regular tweets, 3 = recommended tweet
 
-    while (regularIndex < tweets.length || recommendedIndex < recommendedTweets.length) {
+    while (regularIndex < tweets.length ||
+        recommendedIndex < recommendedTweets.length) {
       if (pattern < 3 && regularIndex < tweets.length) {
         // Add regular tweet
         allTweets.add(tweets[regularIndex]);
@@ -181,7 +183,9 @@ class HomeScreenState extends State<HomeScreen>
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: tweets.length + (tweetProvider.isLoadingMore && tweetProvider.hasMoreContent ? 1 : 0),
+      itemCount:
+          tweets.length +
+          (tweetProvider.isLoadingMore && tweetProvider.hasMoreContent ? 1 : 0),
       itemBuilder: (context, index) {
         // Show loading indicator at the bottom
         if (index == tweets.length) {
@@ -189,9 +193,7 @@ class HomeScreenState extends State<HomeScreen>
             padding: const EdgeInsets.all(20.0),
             child: const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppTheme.twitterBlue,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.twitterBlue),
               ),
             ),
           );
@@ -201,8 +203,10 @@ class HomeScreenState extends State<HomeScreen>
           tweet: tweets[index],
           onDoubleTap: () {
             // Double-tap to like (X-style)
-            Provider.of<TweetProvider>(context, listen: false)
-                .likeTweet(tweets[index].id);
+            Provider.of<TweetProvider>(
+              context,
+              listen: false,
+            ).likeTweet(tweets[index].id);
           },
         );
       },
@@ -212,7 +216,7 @@ class HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
+
     return Consumer<TweetProvider>(
       builder: (context, tweetProvider, child) {
         if (tweetProvider.isLoading && tweetProvider.tweets.isEmpty) {
@@ -258,14 +262,16 @@ class HomeScreenState extends State<HomeScreen>
                 Icon(Icons.timeline, size: 80, color: Colors.grey[300]),
                 const SizedBox(height: 16),
                 Text(
-                  _selectedTimelineIndex == 0 ? 'Welcome to X' : 'No tweets yet',
+                  _selectedTimelineIndex == 0
+                      ? 'Welcome to X'
+                      : 'No tweets yet',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _selectedTimelineIndex == 0 
-                    ? 'Your personalized timeline will appear here'
-                    : 'Follow accounts to see their tweets',
+                  _selectedTimelineIndex == 0
+                      ? 'Your personalized timeline will appear here'
+                      : 'Follow accounts to see their tweets',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -317,10 +323,7 @@ class HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   // Divider
-                  Divider(
-                    height: 0.5,
-                    color: Theme.of(context).dividerColor,
-                  ),
+                  Divider(height: 0.5, color: Theme.of(context).dividerColor),
                 ],
               ),
             ),

@@ -75,6 +75,24 @@ const tweetSchema = new mongoose.Schema({
     type: String,
     ref: 'Tweet',
     default: null
+  },
+  quotedTweet: {
+    type: String,
+    ref: 'Tweet',
+    default: null
+  },
+  isQuoteTweet: {
+    type: Boolean,
+    default: false
+  },
+  threadId: {
+    type: String,
+    ref: 'Tweet',
+    default: null
+  },
+  threadOrder: {
+    type: Number,
+    default: 1
   }
 }, {
   timestamps: true,

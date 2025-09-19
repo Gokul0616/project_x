@@ -1107,4 +1107,248 @@ class ApiService {
       throw Exception('Network error: ${e.toString()}');
     }
   }
+
+  // Messages Methods
+  static Future<Map<String, dynamic>> getConversations({int page = 1, int limit = 20}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final uri = Uri.parse('$baseUrl/messages/conversations').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'limit': limit.toString(),
+        },
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final conversations = jsonDecode(response.body);
+        return {'success': true, 'conversations': conversations};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to load conversations'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createConversation(String participantId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/messages/conversations'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'participantId': participantId,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final conversation = jsonDecode(response.body);
+        return {'success': true, 'conversation': conversation};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to create conversation'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getConversationMessages(
+    String conversationId, {
+    int page = 1,
+    int limit = 50,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final uri = Uri.parse('$baseUrl/messages/conversations/$conversationId/messages').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'limit': limit.toString(),
+        },
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final messages = jsonDecode(response.body);
+        return {'success': true, 'messages': messages};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to load messages'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendMessage(
+    String conversationId,
+    String content, {
+    List<String>? mediaFilePaths,
+    String? replyToId,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/messages/conversations/$conversationId/messages'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['content'] = content;
+      if (replyToId != null) {
+        request.fields['replyToId'] = replyToId;
+      }
+
+      // Add media files if provided
+      if (mediaFilePaths != null && mediaFilePaths.isNotEmpty) {
+        for (String filePath in mediaFilePaths) {
+          request.files.add(await http.MultipartFile.fromPath('media', filePath));
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201) {
+        final message = jsonDecode(response.body);
+        return {'success': true, 'message': message};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to send message'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> markConversationAsRead(String conversationId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.patch(
+        Uri.parse('$baseUrl/messages/conversations/$conversationId/read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Conversation marked as read'};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to mark as read'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteMessage(String messageId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/messages/messages/$messageId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Message deleted successfully'};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to delete message'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> reactToMessage(String messageId, String emoji) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/messages/messages/$messageId/reactions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'emoji': emoji,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final message = jsonDecode(response.body);
+        return {'success': true, 'message': message};
+      } else {
+        final error = jsonDecode(response.body);
+        return {'success': false, 'message': error['message'] ?? 'Failed to react to message'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
 }

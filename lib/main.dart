@@ -7,6 +7,7 @@ import 'providers/tweet_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/upload_provider.dart';
+import 'providers/message_provider.dart';
 import 'services/notification_service.dart';
 import 'utils/app_theme.dart';
 
@@ -31,6 +32,7 @@ class PulseApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TweetProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => UploadProvider()),
+        ChangeNotifierProvider(create: (_) => MessageProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

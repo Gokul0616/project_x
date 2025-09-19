@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const https = require('https');
+const http = require('http');
+const socketIo = require('socket.io');
 const dotenv = require('dotenv'); const fs = require('fs');
 const path = require('path');
 
@@ -16,6 +18,7 @@ const { router: notificationRoutes } = require('./routes/notifications');
 const listRoutes = require('./routes/lists');
 const bookmarkRoutes = require('./routes/bookmarks');
 const momentRoutes = require('./routes/moments');
+const messageRoutes = require('./routes/messages');
 
 const app = express();
 
@@ -35,6 +38,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/moments', momentRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -82,13 +86,26 @@ const options = {
 
 const startServer = async () => {
   await connectDB();
-  // Create HTTPS server
-  // https.createServer(options, app).listen(PORT, () => {
-  //   console.log('Server running on https://192.168.1.19:3000');
-  // });
-  app.listen(PORT, () => {
+
+  // Create HTTP server
+  const server = http.createServer(app);
+
+  // Create Socket.IO server
+  const io = socketIo(server, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+
+  // Socket.IO connection handling
+  require('./services/socketService')(io);
+
+  // Start server
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+    console.log(`Socket.IO server is ready`);
   });
 };
 

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/message_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/tweet_provider.dart';
 import '../utils/app_theme.dart';
@@ -14,6 +15,7 @@ import 'bookmarks/bookmarks_screen.dart';
 import 'help/help_center_screen.dart';
 import 'home/home_screen.dart';
 import 'lists/lists_screen.dart';
+import 'messages/conversations_screen.dart';
 import 'moments/moments_screen.dart';
 import 'notifications/notifications_screen.dart';
 import 'profile/profile_screen.dart';
@@ -46,6 +48,7 @@ class _MainScreenState extends State<MainScreen> {
     _screens = [
       HomeScreen(key: _homeScreenKey),
       const SearchScreen(),
+      const ConversationsScreen(),
       const NotificationsScreen(),
     ];
     
@@ -179,6 +182,83 @@ class _MainScreenState extends State<MainScreen> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.search_outlined, size: 26),
               activeIcon: Icon(Icons.search, size: 26),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Consumer<MessageProvider>(
+                builder: (context, messageProvider, child) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.mail_outlined, size: 26),
+                      if (messageProvider.totalUnreadCount > 0)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              messageProvider.totalUnreadCount > 9
+                                  ? '9+'
+                                  : messageProvider.totalUnreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              activeIcon: Consumer<MessageProvider>(
+                builder: (context, messageProvider, child) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.mail, size: 26),
+                      if (messageProvider.totalUnreadCount > 0)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              messageProvider.totalUnreadCount > 9
+                                  ? '9+'
+                                  : messageProvider.totalUnreadCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
               label: '',
             ),
             BottomNavigationBarItem(
@@ -333,7 +413,46 @@ class _MainScreenState extends State<MainScreen> {
         actions = null;
         break;
 
-      case 2: // Notifications
+      case 2: // Messages
+        leading = GestureDetector(
+          onTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          child: Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              final user = authProvider.user;
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: user?.profileImage != null
+                      ? CachedNetworkImageProvider(user!.profileImage!)
+                      : null,
+                  child: user?.profileImage == null
+                      ? Text(
+                          user != null && user.displayName.isNotEmpty
+                              ? user.displayName[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : null,
+                ),
+              );
+            },
+          ),
+        );
+        titleWidget = const Text(
+          'Messages',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        );
+        actions = [];
+        break;
+
+      case 3: // Notifications
         leading = GestureDetector(
           onTap: () {
             _scaffoldKey.currentState?.openDrawer();

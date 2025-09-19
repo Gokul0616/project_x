@@ -62,17 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Pulse Logo
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.twitterBlue,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Text(
-                    'P',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                    ),
+
+                  child: Image.asset(
+                    'assets/images/logo1.png',
+                    height: 100,
+                    width: 100,
                   ),
                 ),
                 const SizedBox(height: 48),

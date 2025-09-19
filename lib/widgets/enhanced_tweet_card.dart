@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as flutter;
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +48,7 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controllers
     _likeAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -63,18 +64,24 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
     );
 
     _likeAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _likeAnimationController, curve: Curves.elasticOut),
+      CurvedAnimation(
+        parent: _likeAnimationController,
+        curve: Curves.elasticOut,
+      ),
     );
     _retweetAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _retweetAnimationController, curve: Curves.elasticOut),
+      CurvedAnimation(
+        parent: _retweetAnimationController,
+        curve: Curves.elasticOut,
+      ),
     );
-    _quickActionsAnimation = Tween<Offset>(
-      begin: const Offset(-1.0, 0.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _quickActionsController,
-      curve: Curves.easeInOut,
-    ));
+    _quickActionsAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _quickActionsController,
+            curve: Curves.easeInOut,
+          ),
+        );
   }
 
   @override
@@ -107,13 +114,15 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
     _likeAnimationController.forward().then((_) {
       _likeAnimationController.reverse();
     });
-    
+
     // Haptic feedback
     HapticFeedback.lightImpact();
-    
+
     // Call provider
-    Provider.of<TweetProvider>(context, listen: false)
-        .likeTweet(widget.tweet.id);
+    Provider.of<TweetProvider>(
+      context,
+      listen: false,
+    ).likeTweet(widget.tweet.id);
   }
 
   void _handleRetweet() {
@@ -121,13 +130,15 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
     _retweetAnimationController.forward().then((_) {
       _retweetAnimationController.reverse();
     });
-    
+
     // Haptic feedback
     HapticFeedback.lightImpact();
-    
+
     // Call provider
-    Provider.of<TweetProvider>(context, listen: false)
-        .retweetTweet(widget.tweet.id);
+    Provider.of<TweetProvider>(
+      context,
+      listen: false,
+    ).retweetTweet(widget.tweet.id);
   }
 
   void _handleDoubleTap() {
@@ -140,7 +151,7 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
       _showQuickActions = true;
     });
     _quickActionsController.forward();
-    
+
     // Auto-hide after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted && _showQuickActions) {
@@ -163,7 +174,9 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
     _hideQuickActions();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Thanks for your feedback. You\'ll see fewer posts like this.'),
+        content: Text(
+          'Thanks for your feedback. You\'ll see fewer posts like this.',
+        ),
         duration: Duration(seconds: 2),
       ),
     );
@@ -185,7 +198,8 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
     const maxContentLength = 280;
 
     return Semantics(
-      label: 'Tweet by ${widget.tweet.author.displayName}, ${widget.tweet.content}',
+      label:
+          'Tweet by ${widget.tweet.author.displayName}, ${widget.tweet.content}',
       button: true,
       child: Stack(
         children: [
@@ -245,7 +259,8 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                         child: CircleAvatar(
                           radius: 18,
                           backgroundColor: AppTheme.twitterBlue,
-                          backgroundImage: widget.tweet.author.profileImage != null
+                          backgroundImage:
+                              widget.tweet.author.profileImage != null
                               ? CachedNetworkImageProvider(
                                   widget.tweet.author.profileImage!,
                                 )
@@ -253,9 +268,11 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                           child: widget.tweet.author.profileImage == null
                               ? Text(
                                   widget.tweet.author.displayName.isNotEmpty
-                                      ? widget.tweet.author.displayName[0].toUpperCase()
+                                      ? widget.tweet.author.displayName[0]
+                                            .toUpperCase()
                                       : widget.tweet.author.username.isNotEmpty
-                                      ? widget.tweet.author.username[0].toUpperCase()
+                                      ? widget.tweet.author.username[0]
+                                            .toUpperCase()
                                       : 'U',
                                   style: const TextStyle(
                                     color: Colors.white,
@@ -283,7 +300,9 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
@@ -361,7 +380,9 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                                 text: widget.tweet.content,
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
                                   height: 1.3,
                                 ),
                                 context: context,
@@ -370,11 +391,13 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                               final textPainter = TextPainter(
                                 text: textSpan,
                                 maxLines: maxLines,
-                                textDirection: TextDirection.ltr,
+                                textDirection: flutter.TextDirection.ltr,
                               )..layout(maxWidth: constraints.maxWidth);
 
-                              final isOverflowing = textPainter.didExceedMaxLines ||
-                                  widget.tweet.content.length > maxContentLength;
+                              final isOverflowing =
+                                  textPainter.didExceedMaxLines ||
+                                  widget.tweet.content.length >
+                                      maxContentLength;
 
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,11 +406,15 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                                     text: widget.tweet.content,
                                     style: TextStyle(
                                       fontSize: 15,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                       height: 1.3,
                                     ),
                                     maxLines: _isExpanded ? null : maxLines,
-                                    overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                                    overflow: _isExpanded
+                                        ? null
+                                        : TextOverflow.ellipsis,
                                   ),
                                   if (isOverflowing && !_isExpanded)
                                     GestureDetector(
@@ -397,7 +424,9 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                                         });
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
+                                        padding: const EdgeInsets.only(
+                                          top: 4.0,
+                                        ),
                                         child: Text(
                                           'Show more',
                                           style: TextStyle(
@@ -418,14 +447,16 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                             const SizedBox(height: 8),
                             MediaGridWidget(
                               mediaFiles: widget.tweet.mediaFiles
-                                  .map((media) => {
-                                        'url': media.url,
-                                        'type': media.type,
-                                        'isLocal': false,
-                                        'filename': media.filename,
-                                        'size': media.size,
-                                        'thumbnailUrl': media.thumbnailUrl,
-                                      })
+                                  .map(
+                                    (media) => {
+                                      'url': media.url,
+                                      'type': media.type,
+                                      'isLocal': false,
+                                      'filename': media.filename,
+                                      'size': media.size,
+                                      'thumbnailUrl': media.thumbnailUrl,
+                                    },
+                                  )
                                   .toList(),
                               enableTap: true,
                             ),
@@ -458,7 +489,7 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                           ],
 
                           const SizedBox(height: 8),
-                          
+
                           // Enhanced action buttons with X-style animations
                           GestureDetector(
                             onTap: () {}, // Prevent parent tap
@@ -518,7 +549,9 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                                     // Future: Enhanced sharing options
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Share feature enhanced - coming soon!'),
+                                        content: Text(
+                                          'Share feature enhanced - coming soon!',
+                                        ),
                                       ),
                                     );
                                   },
@@ -585,7 +618,10 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.visibility_off, color: Colors.orange),
+                                  Icon(
+                                    Icons.visibility_off,
+                                    color: Colors.orange,
+                                  ),
                                   const SizedBox(height: 4),
                                   const Text(
                                     'Show less',
@@ -704,7 +740,8 @@ class RichTweetText extends StatelessWidget {
         spans.add(
           TextSpan(
             text: text.substring(lastEnd, match.start),
-            style: style ??
+            style:
+                style ??
                 TextStyle(
                   fontSize: 15,
                   color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -744,7 +781,8 @@ class RichTweetText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(lastEnd),
-          style: style ??
+          style:
+              style ??
               TextStyle(
                 fontSize: 15,
                 color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -757,7 +795,8 @@ class RichTweetText extends StatelessWidget {
     if (spans.isEmpty) {
       return TextSpan(
         text: text,
-        style: style ??
+        style:
+            style ??
             TextStyle(
               fontSize: 15,
               color: Theme.of(context).textTheme.bodyLarge?.color,
