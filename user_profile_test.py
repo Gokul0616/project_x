@@ -211,9 +211,10 @@ class UserProfileTester:
             print("❌ Backend server is not running. Aborting tests.")
             return False
         
-        # Test 2: Login as test user to get authentication
-        if not self.login_existing_user("gokul"):
-            print("❌ Failed to authenticate. Aborting tests.")
+        # Test 2: Create test user for authentication
+        test_username = self.create_test_user("gokul")
+        if not test_username:
+            print("❌ Failed to create test user. Aborting tests.")
             return False
         
         # Test 3: Create a test tweet to ensure user has content
