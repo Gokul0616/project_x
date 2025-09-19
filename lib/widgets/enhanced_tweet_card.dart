@@ -297,17 +297,29 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
                             children: [
                               Flexible(
                                 flex: 2,
-                                child: Text(
-                                  widget.tweet.author.displayName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Theme.of(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
                                       context,
-                                    ).textTheme.bodyLarge?.color,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(
+                                          username: widget.tweet.author.username,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    widget.tweet.author.displayName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ),
                               // Placeholder for verified badge (future AI integration)
