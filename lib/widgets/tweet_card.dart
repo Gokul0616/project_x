@@ -92,10 +92,11 @@ class _TweetCardState extends State<TweetCard> {
                     // Profile Avatar - Twitter-like size
                     GestureDetector(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Navigate to @${widget.tweet.author.username} profile - Coming soon!',
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserProfileScreen(
+                              username: widget.tweet.author.username,
                             ),
                           ),
                         );
