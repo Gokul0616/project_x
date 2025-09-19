@@ -221,7 +221,7 @@ class UserProfileTester:
         self.create_test_tweet("Testing user profile navigation after Enhanced Tweet Card fix! 🚀 #testing")
         
         # Test 4: Test user profile endpoints for existing users
-        test_users = ["gokul", "testuser"]
+        test_users = [test_username, "testuser123"]  # Use our created user and existing user
         profile_tests_passed = 0
         tweets_tests_passed = 0
         
