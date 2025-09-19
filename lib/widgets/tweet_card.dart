@@ -140,32 +140,56 @@ class _TweetCardState extends State<TweetCard> {
                             children: [
                               Flexible(
                                 flex: 2,
-                                child: Text(
-                                  widget.tweet.author.displayName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14, // Smaller for Twitter look
-                                    color: Theme.of(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
                                       context,
-                                    ).textTheme.bodyLarge?.color,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(
+                                          username: widget.tweet.author.username,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    widget.tweet.author.displayName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14, // Smaller for Twitter look
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(width: 4),
                               Flexible(
                                 flex: 2,
-                                child: Text(
-                                  '@${widget.tweet.author.username}',
-                                  style: TextStyle(
-                                    color: Theme.of(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
                                       context,
-                                    ).textTheme.bodyMedium?.color,
-                                    fontSize: 14,
+                                      MaterialPageRoute(
+                                        builder: (context) => UserProfileScreen(
+                                          username: widget.tweet.author.username,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    '@${widget.tweet.author.username}',
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium?.color,
+                                      fontSize: 14,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ),
                               const SizedBox(width: 4),
