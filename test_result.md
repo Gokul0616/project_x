@@ -253,6 +253,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ Messaging operations working perfectly. Successfully tested: GET /api/messages/conversations/:id/messages (retrieved existing messages from conversation 1d8c1903-bcee-4b16-8afe-36af71be8fee), POST /api/messages/conversations/:id/messages (sent multiple test messages successfully). Message sending, retrieval, and conversation updates all functioning correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ MESSAGE ROUTING DEBUG COMPLETED - NO ISSUES FOUND! Comprehensive debugging test completed with 100% success rate (13/13 tests passed). Tested specific user-reported issue where messages appear as if OTHER person sent them. Results: User A (alice_msg_1758271757) sends message → sender_id correctly shows User A's ID, recipient_id correctly shows User B's ID. User B (bob_msg_1758271757) sends message → sender_id correctly shows User B's ID, recipient_id correctly shows User A's ID. Message retrieval from both user perspectives shows correct sender/recipient fields. Backend message routing is working correctly - the issue may be in frontend message display logic or user ID comparison in the Flutter app."
 
   - task: "Messaging Integration Flow"
     implemented: true
