@@ -1531,6 +1531,292 @@ class TwitterCloneBackendTester:
         
         return passed == total
 
+    def test_messaging_functionality(self):
+        """Test messaging functionality with provided authentication details"""
+        print("\n🔥 TESTING MESSAGING FUNCTIONALITY")
+        print("=" * 60)
+        
+        # Use provided Gokul token
+        gokul_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzYzE1NTE4Mi1mMzU4LTQ3MmItOTIxNS0xZWI0YTg3YTMyYzgiLCJpYXQiOjE3NTgyNjA3NzMsImV4cCI6MTc1ODg2NTU3M30.6D97zwgefug3IiXaErBmvbVMapLXafQEai9Y6dz9WO0"
+        self.auth_token = gokul_token
+        
+        # Test user profile APIs first
+        self.test_user_profile_api("gokul")
+        self.test_user_profile_api("testuser")
+        self.test_user_tweets_api("gokul")
+        self.test_user_tweets_api("testuser")
+        
+        # Test messaging APIs
+        self.test_get_conversations()
+        conversation_id = self.test_create_conversation_with_testuser()
+        
+        if conversation_id:
+            self.test_get_conversation_messages(conversation_id)
+            self.test_send_message_to_conversation(conversation_id)
+            
+        # Test existing conversation
+        existing_conversation_id = "1d8c1903-bcee-4b16-8afe-36af71be8fee"
+        self.test_get_conversation_messages(existing_conversation_id)
+        self.test_send_message_to_conversation(existing_conversation_id)
+        
+        # Test integration flow
+        self.test_complete_messaging_flow()
+        
+    def test_user_profile_api(self, username):
+        """Test GET /api/users/:username"""
+        try:
+            response = self.make_request("GET", f"/users/{username}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "user" in data and data["user"]["username"] == username:
+                    self.log_test(f"User Profile API - {username}", True, f"Retrieved profile for {username}", {
+                        "username": data["user"]["username"],
+                        "displayName": data["user"].get("displayName"),
+                        "id": data["user"]["_id"]
+                    })
+                    return True
+                else:
+                    self.log_test(f"User Profile API - {username}", False, "Missing user data or username mismatch", data)
+                    return False
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test(f"User Profile API - {username}", False, f"Failed with status {response.status_code}", error_data)
+                return False
+                
+        except Exception as e:
+            self.log_test(f"User Profile API - {username}", False, f"Request failed: {str(e)}")
+            return False
+    
+    def test_user_tweets_api(self, username):
+        """Test GET /api/users/:username/tweets"""
+        try:
+            response = self.make_request("GET", f"/users/{username}/tweets")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_test(f"User Tweets API - {username}", True, f"Retrieved {len(data)} tweets for {username}", {
+                        "username": username,
+                        "tweets_count": len(data)
+                    })
+                    return True
+                else:
+                    self.log_test(f"User Tweets API - {username}", False, "Response is not a list of tweets", data)
+                    return False
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test(f"User Tweets API - {username}", False, f"Failed with status {response.status_code}", error_data)
+                return False
+                
+        except Exception as e:
+            self.log_test(f"User Tweets API - {username}", False, f"Request failed: {str(e)}")
+            return False
+    
+    def test_get_conversations(self):
+        """Test GET /api/messages/conversations"""
+        try:
+            response = self.make_request("GET", "/messages/conversations")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_test("Get Conversations", True, f"Retrieved {len(data)} conversations", {
+                        "conversations_count": len(data),
+                        "conversation_ids": [conv.get("_id") for conv in data[:3]]  # Show first 3 IDs
+                    })
+                    return data
+                else:
+                    self.log_test("Get Conversations", False, "Response is not a list of conversations", data)
+                    return []
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test("Get Conversations", False, f"Failed with status {response.status_code}", error_data)
+                return []
+                
+        except Exception as e:
+            self.log_test("Get Conversations", False, f"Request failed: {str(e)}")
+            return []
+    
+    def test_create_conversation_with_testuser(self):
+        """Test POST /api/messages/conversations - Create conversation with testuser"""
+        try:
+            # Use testuser ID from the review request
+            testuser_id = "11f0098f-c3ac-41da-95e0-1f46136bc609"
+            
+            conversation_data = {
+                "participantId": testuser_id
+            }
+            
+            response = self.make_request("POST", "/messages/conversations", conversation_data)
+            
+            if response.status_code == 201:
+                data = response.json()
+                if "_id" in data and "participants" in data:
+                    conversation_id = data["_id"]
+                    self.log_test("Create Conversation", True, f"Created conversation with testuser", {
+                        "conversation_id": conversation_id,
+                        "participants_count": len(data["participants"]),
+                        "is_group": data.get("isGroup", False)
+                    })
+                    return conversation_id
+                else:
+                    self.log_test("Create Conversation", False, "Missing conversation data", data)
+                    return None
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test("Create Conversation", False, f"Failed with status {response.status_code}", error_data)
+                return None
+                
+        except Exception as e:
+            self.log_test("Create Conversation", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_get_conversation_messages(self, conversation_id):
+        """Test GET /api/messages/conversations/:id/messages"""
+        try:
+            response = self.make_request("GET", f"/messages/conversations/{conversation_id}/messages")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list):
+                    self.log_test(f"Get Messages - {conversation_id[:8]}...", True, f"Retrieved {len(data)} messages", {
+                        "conversation_id": conversation_id,
+                        "messages_count": len(data),
+                        "message_types": [msg.get("messageType") for msg in data[:3]]  # Show first 3 types
+                    })
+                    return data
+                else:
+                    self.log_test(f"Get Messages - {conversation_id[:8]}...", False, "Response is not a list of messages", data)
+                    return []
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test(f"Get Messages - {conversation_id[:8]}...", False, f"Failed with status {response.status_code}", error_data)
+                return []
+                
+        except Exception as e:
+            self.log_test(f"Get Messages - {conversation_id[:8]}...", False, f"Request failed: {str(e)}")
+            return []
+    
+    def test_send_message_to_conversation(self, conversation_id):
+        """Test POST /api/messages/conversations/:id/messages"""
+        try:
+            message_data = {
+                "content": "Hello! This is a test message from the messaging API test suite. How are you doing today?"
+            }
+            
+            response = self.make_request("POST", f"/messages/conversations/{conversation_id}/messages", message_data)
+            
+            if response.status_code == 201:
+                data = response.json()
+                if "_id" in data and "content" in data:
+                    message_id = data["_id"]
+                    self.log_test(f"Send Message - {conversation_id[:8]}...", True, f"Message sent successfully", {
+                        "message_id": message_id,
+                        "conversation_id": conversation_id,
+                        "content": data["content"][:50] + "...",
+                        "message_type": data.get("messageType")
+                    })
+                    return message_id
+                else:
+                    self.log_test(f"Send Message - {conversation_id[:8]}...", False, "Missing message data", data)
+                    return None
+            else:
+                error_data = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+                self.log_test(f"Send Message - {conversation_id[:8]}...", False, f"Failed with status {response.status_code}", error_data)
+                return None
+                
+        except Exception as e:
+            self.log_test(f"Send Message - {conversation_id[:8]}...", False, f"Request failed: {str(e)}")
+            return None
+    
+    def test_complete_messaging_flow(self):
+        """Test complete messaging flow: Login → Get profile → Create conversation → Send messages"""
+        try:
+            # Step 1: Already logged in with Gokul token
+            self.log_test("Integration Flow - Step 1", True, "Already authenticated as Gokul", {
+                "token_present": bool(self.auth_token)
+            })
+            
+            # Step 2: Get Gokul's profile
+            gokul_profile = self.test_user_profile_api("gokul")
+            
+            # Step 3: Get testuser's profile  
+            testuser_profile = self.test_user_profile_api("testuser")
+            
+            # Step 4: Get conversations list
+            conversations = self.test_get_conversations()
+            
+            # Step 5: Create or use existing conversation
+            if conversations and len(conversations) > 0:
+                # Use existing conversation
+                existing_conv_id = conversations[0]["_id"]
+                self.log_test("Integration Flow - Step 5", True, f"Using existing conversation", {
+                    "conversation_id": existing_conv_id
+                })
+                
+                # Step 6: Send message to existing conversation
+                message_id = self.test_send_message_to_conversation(existing_conv_id)
+                
+                if message_id:
+                    self.log_test("Integration Flow - Complete", True, "Complete messaging flow successful", {
+                        "steps_completed": 6,
+                        "final_message_id": message_id
+                    })
+                    return True
+            else:
+                # Create new conversation
+                new_conv_id = self.test_create_conversation_with_testuser()
+                if new_conv_id:
+                    message_id = self.test_send_message_to_conversation(new_conv_id)
+                    if message_id:
+                        self.log_test("Integration Flow - Complete", True, "Complete messaging flow successful", {
+                            "steps_completed": 6,
+                            "final_message_id": message_id
+                        })
+                        return True
+            
+            self.log_test("Integration Flow - Complete", False, "Integration flow incomplete")
+            return False
+            
+        except Exception as e:
+            self.log_test("Integration Flow - Complete", False, f"Integration flow failed: {str(e)}")
+            return False
+
+    def run_messaging_tests(self):
+        """Run comprehensive messaging functionality tests"""
+        print("💬 Starting Twitter Clone Messaging System Tests")
+        print("=" * 80)
+        
+        # Health check first
+        if not self.test_health_check():
+            print("❌ Backend server is not running. Stopping tests.")
+            return False
+        
+        # Test messaging functionality with provided credentials
+        self.test_messaging_functionality()
+        
+        # Summary
+        print("\n" + "=" * 80)
+        print("📊 MESSAGING SYSTEM TEST SUMMARY")
+        print("=" * 80)
+        
+        passed = sum(1 for result in self.test_results if result["success"])
+        total = len(self.test_results)
+        
+        print(f"Total Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['message']}")
+        
+        return passed == total
+
     def run_notification_tests(self):
         """Run comprehensive notification system tests"""
         print("🔔 Starting Twitter Clone Notification System Tests")
