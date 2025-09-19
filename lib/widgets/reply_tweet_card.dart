@@ -7,6 +7,7 @@ import '../providers/tweet_provider.dart';
 import '../utils/app_theme.dart';
 import '../screens/tweet/tweet_detail_screen.dart';
 import '../screens/tweet/reply_tweet_screen.dart';
+import '../screens/profile/user_profile_screen.dart';
 
 class ReplyTweetCard extends StatelessWidget {
   final Tweet tweet;
