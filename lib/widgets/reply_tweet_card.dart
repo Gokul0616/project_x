@@ -143,19 +143,43 @@ class ReplyTweetCard extends StatelessWidget {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(
-                                        tweet.parentTweet!.author.displayName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => UserProfileScreen(
+                                                username: tweet.parentTweet!.author.username,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          tweet.parentTweet!.author.displayName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        '@${tweet.parentTweet!.author.username}',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 13,
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => UserProfileScreen(
+                                                username: tweet.parentTweet!.author.username,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          '@${tweet.parentTweet!.author.username}',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 13,
+                                          ),
                                         ),
                                       ),
                                     ],
