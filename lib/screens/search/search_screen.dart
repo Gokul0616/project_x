@@ -804,4 +804,23 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
+
+  void _toggleFollow(Map<String, dynamic> user) {
+    // TODO: Implement follow/unfollow API call
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Follow functionality not implemented yet'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _navigateToUserProfile(Map<String, dynamic> user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(username: user['username']),
+      ),
+    );
+  }
 }
