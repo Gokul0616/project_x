@@ -74,8 +74,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Privacy and safety',
             subtitle: 'Manage what information you see and share on Pulse.',
             onTap: () {
-              // TODO: Navigate to privacy settings
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacySettingsScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
