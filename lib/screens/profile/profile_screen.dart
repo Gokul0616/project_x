@@ -837,7 +837,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 children: [
                                   GestureDetector(
                                     onTap: () {
-                                      // TODO: Navigate to following screen
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FollowingScreen(user: user),
+                                        ),
+                                      );
                                     },
                                     child: RichText(
                                       text: TextSpan(
