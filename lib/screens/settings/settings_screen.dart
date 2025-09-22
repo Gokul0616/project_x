@@ -5,6 +5,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/app_theme.dart';
 import '../debug/notification_debug_screen.dart';
+import 'account_settings_screen.dart';
+import 'change_password_screen.dart';
+import 'privacy_settings_screen.dart';
+import 'notification_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
