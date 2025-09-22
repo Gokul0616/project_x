@@ -88,8 +88,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Notifications',
             subtitle: 'Select the kinds of notifications you get about your activities and recommendations.',
             onTap: () {
-              // TODO: Navigate to notification settings
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
