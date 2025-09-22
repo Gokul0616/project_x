@@ -508,6 +508,8 @@ import '../../utils/app_theme.dart';
 import '../../widgets/reply_tweet_card.dart';
 import '../../widgets/tweet_card.dart';
 import '../settings/settings_screen.dart';
+import 'following_screen.dart';
+import 'followers_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
