@@ -1,21 +1,48 @@
 class ApiConfig {
+  // Environment-based configuration
+  static const String _environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+  
   // Different base URLs for different environments
-  static const String _localhost = 'http://192.168.1.19:3000/api';
-  static const String _androidEmulator = 'http://10.0.2.2:3000/api';
-  static const String _iosSimulator = 'http://localhost:3000/api';
+  static const String _developmentUrl = 'http://192.168.1.19:8001/api';
+  static const String _productionUrl = 'https://your-production-domain.com/api';
+  static const String _stagingUrl = 'https://staging.your-domain.com/api';
+  
+  // Platform-specific URLs for development
+  static const String _androidEmulator = 'http://10.0.2.2:8001/api';
+  static const String _iosSimulator = 'http://localhost:8001/api';
 
-  // You can change this based on your testing environment
-  static const String baseUrl = _localhost;
+  // Get base URL based on environment
+  static String get baseUrl {
+    switch (_environment) {
+      case 'production':
+        return _productionUrl;
+      case 'staging':
+        return _stagingUrl;
+      case 'development':
+      default:
+        // Auto-detect platform for development
+        return _getDevelopmentUrl();
+    }
+  }
 
-  // Alternative URLs you can try if localhost doesn't work:
-  // 1. For Android Emulator: http://10.0.2.2:8001/api
-  // 2. For physical device: http://YOUR_COMPUTER_IP:8001/api (e.g., http://192.168.1.19:8001/api)
-  // 3. For iOS Simulator: http://localhost:8001/api
+  static String _getDevelopmentUrl() {
+    // Try to detect platform automatically
+    try {
+      // This is a simple way to detect platform during development
+      // In a real app, you might use Platform.isAndroid, Platform.isIOS, etc.
+      return _developmentUrl;
+    } catch (e) {
+      // Fallback to localhost
+      return _iosSimulator;
+    }
+  }
 
+  // API endpoint getters
   static String get tweetsEndpoint => '$baseUrl/tweets';
   static String get authEndpoint => '$baseUrl/auth';
   static String get notificationsEndpoint => '$baseUrl/notifications';
 
+  // Dynamic endpoint methods
   static String getTweetRepliesEndpoint(String tweetId) =>
       '$baseUrl/tweets/$tweetId/replies';
   static String getLikeTweetEndpoint(String tweetId) =>
