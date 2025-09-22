@@ -10,6 +10,9 @@ import 'change_password_screen.dart';
 import 'privacy_settings_screen.dart';
 import 'notification_settings_screen.dart';
 import 'blocked_accounts_screen.dart';
+import '../data/data_download_screen.dart';
+import 'language_settings_screen.dart';
+import 'accessibility_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
