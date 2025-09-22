@@ -181,8 +181,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Accessibility',
             subtitle: 'Manage aspects of your Pulse experience such as limiting color contrast and motion.',
             onTap: () {
-              // TODO: Navigate to accessibility settings
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccessibilitySettingsScreen(),
+                ),
+              );
             },
           ),
           
