@@ -47,8 +47,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Change your password',
             subtitle: 'Change your password at any time.',
             onTap: () {
-              // TODO: Navigate to change password
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
