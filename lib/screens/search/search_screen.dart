@@ -754,13 +754,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         trailing: OutlinedButton(
           onPressed: () {
-            // TODO: Implement follow/unfollow functionality
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Follow feature coming soon!'),
-                duration: Duration(seconds: 2),
-              ),
-            );
+            _toggleFollow(user);
           },
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
