@@ -870,7 +870,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   const SizedBox(width: 20),
                                   GestureDetector(
                                     onTap: () {
-                                      // TODO: Navigate to followers screen
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FollowersScreen(user: user),
+                                        ),
+                                      );
                                     },
                                     child: RichText(
                                       text: TextSpan(
