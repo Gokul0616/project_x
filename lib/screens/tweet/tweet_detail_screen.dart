@@ -952,4 +952,214 @@ class RichTweetText extends StatelessWidget {
       MaterialPageRoute(builder: (context) => SearchScreen(initialQuery: text)),
     );
   }
+
+  void _showTweetOptions(BuildContext context, Tweet tweet) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final isOwnTweet = currentUser?.id == tweet.author.id;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            if (isOwnTweet) ...[
+              _buildTweetOptionTile(
+                icon: Icons.delete_outline,
+                title: 'Delete',
+                subtitle: 'Remove this tweet',
+                iconColor: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation(context, tweet);
+                },
+              ),
+              _buildTweetOptionTile(
+                icon: Icons.edit_outlined,
+                title: 'Edit',
+                subtitle: 'Edit this tweet',
+                onTap: () {
+                  Navigator.pop(context);
+                  _editTweet(context, tweet);
+                },
+              ),
+            ] else ...[
+              _buildTweetOptionTile(
+                icon: Icons.person_add_disabled_outlined,
+                title: 'Unfollow @${tweet.author.username}',
+                subtitle: 'Stop seeing tweets from this account',
+                onTap: () {
+                  Navigator.pop(context);
+                  _unfollowUser(context, tweet.author);
+                },
+              ),
+              _buildTweetOptionTile(
+                icon: Icons.block_outlined,
+                title: 'Block @${tweet.author.username}',
+                subtitle: 'Block this account',
+                iconColor: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _blockUser(context, tweet.author);
+                },
+              ),
+              _buildTweetOptionTile(
+                icon: Icons.flag_outlined,
+                title: 'Report Tweet',
+                subtitle: 'Report this tweet for review',
+                iconColor: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _reportTweet(context, tweet);
+                },
+              ),
+            ],
+            
+            // Common options for all tweets
+            _buildTweetOptionTile(
+              icon: Icons.bookmark_border_outlined,
+              title: 'Bookmark',
+              subtitle: 'Save this tweet for later',
+              onTap: () {
+                Navigator.pop(context);
+                _bookmarkTweet(context, tweet);
+              },
+            ),
+            _buildTweetOptionTile(
+              icon: Icons.share_outlined,
+              title: 'Share Tweet',
+              subtitle: 'Share this tweet with others',
+              onTap: () {
+                Navigator.pop(context);
+                _shareTweet(context, tweet);
+              },
+            ),
+            _buildTweetOptionTile(
+              icon: Icons.copy_outlined,
+              title: 'Copy Link',
+              subtitle: 'Copy link to this tweet',
+              onTap: () {
+                Navigator.pop(context);
+                _copyTweetLink(context, tweet);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTweetOptionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color? iconColor,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Tweet tweet) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Tweet?'),
+        content: const Text(
+          'This can\'t be undone and it will be removed from your profile, the timeline of any accounts that follow you, and from search results.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteTweet(context, tweet);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteTweet(BuildContext context, Tweet tweet) {
+    // TODO: Implement delete tweet API call
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Delete tweet functionality not implemented yet')),
+    );
+  }
+
+  void _editTweet(BuildContext context, Tweet tweet) {
+    // TODO: Navigate to edit tweet screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Edit tweet functionality not implemented yet')),
+    );
+  }
+
+  void _unfollowUser(BuildContext context, user) {
+    // TODO: Implement unfollow API call
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Unfollow functionality not implemented yet')),
+    );
+  }
+
+  void _blockUser(BuildContext context, user) {
+    // TODO: Implement block user API call
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Block functionality not implemented yet')),
+    );
+  }
+
+  void _reportTweet(BuildContext context, Tweet tweet) {
+    // TODO: Implement report tweet functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Report functionality not implemented yet')),
+    );
+  }
+
+  void _bookmarkTweet(BuildContext context, Tweet tweet) {
+    // TODO: Implement bookmark tweet API call
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bookmark functionality not implemented yet')),
+    );
+  }
+
+  void _shareTweet(BuildContext context, Tweet tweet) {
+    // TODO: Implement share tweet functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Share functionality not implemented yet')),
+    );
+  }
+
+  void _copyTweetLink(BuildContext context, Tweet tweet) {
+    // TODO: Implement copy tweet link functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copy link functionality not implemented yet')),
+    );
+  }
 }
