@@ -5,6 +5,7 @@ import '../../utils/app_theme.dart';
 import '../../widgets/tweet_card.dart';
 import '../../models/tweet_model.dart';
 import '../../services/api_service.dart';
+import '../profile/user_profile_screen.dart';
 import 'dart:async';
 
 class SearchScreen extends StatefulWidget {
