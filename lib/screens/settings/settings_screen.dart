@@ -157,8 +157,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Languages',
             subtitle: 'Manage which languages are used to personalize your Pulse experience.',
             onTap: () {
-              // TODO: Navigate to language settings
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LanguageSettingsScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
