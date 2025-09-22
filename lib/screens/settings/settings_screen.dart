@@ -65,8 +65,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Download an archive of your data',
             subtitle: 'Get insights into the type of information stored for your account.',
             onTap: () {
-              // TODO: Navigate to data download
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DataDownloadScreen(),
+                ),
+              );
             },
           ),
           
