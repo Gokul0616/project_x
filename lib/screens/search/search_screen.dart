@@ -765,13 +765,7 @@ class _SearchScreenState extends State<SearchScreen> {
           child: const Text('Follow'),
         ),
         onTap: () {
-          // TODO: Navigate to user profile
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Navigate to @${user['username']} profile'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          _navigateToUserProfile(user);
         },
       ),
     );
