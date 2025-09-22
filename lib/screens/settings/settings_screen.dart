@@ -103,8 +103,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Blocked accounts',
             subtitle: 'Manage the accounts that you\'ve blocked.',
             onTap: () {
-              // TODO: Navigate to blocked accounts
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BlockedAccountsScreen(),
+                ),
+              );
             },
           ),
           
