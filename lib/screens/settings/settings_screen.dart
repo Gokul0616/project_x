@@ -33,8 +33,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Account information',
             subtitle: 'See your account information like your phone number and email address.',
             onTap: () {
-              // TODO: Navigate to account information
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AccountSettingsScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
