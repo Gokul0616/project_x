@@ -245,7 +245,7 @@ class _TweetDetailScreenState extends State<TweetDetailScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.more_vert, size: 20),
                                   onPressed: () {
-                                    // TODO: Show tweet options
+                                    _showTweetOptions(context, tweet);
                                   },
                                 ),
                               ],
