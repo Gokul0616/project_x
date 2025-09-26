@@ -343,6 +343,13 @@ class CallService extends ChangeNotifier {
     _isInitiator = false;
     _callState = CallState.ringing;
 
+    // Show incoming call notification
+    NotificationService.showIncomingCall(
+      callId: data['callId'],
+      callerName: data['callerName'] ?? 'Unknown',
+      callType: data['callType'],
+    );
+
     notifyListeners();
     Logger('CallService').info('Incoming call received from ${data['callerName']}');
   }
