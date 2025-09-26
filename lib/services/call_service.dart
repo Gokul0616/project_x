@@ -107,24 +107,47 @@ class CallService extends ChangeNotifier {
   }
 
   Future<void> _connectToSignalingServer() async {
-    _socket = IO.io(ApiConfig.baseUrl, <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': true,
-    });
+    try {
+      // Get authentication token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      
+      if (token == null) {
+        Logger('CallService').severe('No authentication token found');
+        return;
+      }
 
-    _socket!.onConnect((_) {
-      Logger('CallService').info('Connected to signaling server');
-    });
+      _socket = IO.io(ApiConfig.baseUrl.replaceAll('/api', ''), <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': true,
+        'auth': {
+          'token': token,
+        },
+      });
 
-    _socket!.onDisconnect((_) {
-      Logger('CallService').info('Disconnected from signaling server');
-    });
+      _socket!.onConnect((_) {
+        Logger('CallService').info('Connected to signaling server');
+      });
 
-    // Listen for signaling messages
-    _socket!.on('call_offer', (data) => _handleCallOffer(data));
-    _socket!.on('call_answer', (data) => _handleCallAnswer(data));
-    _socket!.on('ice_candidate', (data) => _handleIceCandidate(data));
-    _socket!.on('call_end', (data) => _handleCallEnd(data));
+      _socket!.onDisconnect((_) {
+        Logger('CallService').info('Disconnected from signaling server');
+      });
+
+      _socket!.onConnectError((error) {
+        Logger('CallService').severe('Socket connection error: $error');
+      });
+
+      // Listen for signaling messages
+      _socket!.on('incoming_call', (data) => _handleIncomingCall(data));
+      _socket!.on('call_accepted', (data) => _handleCallAccepted(data));
+      _socket!.on('call_rejected', (data) => _handleCallRejected(data));
+      _socket!.on('call_ended', (data) => _handleCallEnd(data));
+      _socket!.on('webrtc_offer', (data) => _handleWebRTCOffer(data));
+      _socket!.on('webrtc_answer', (data) => _handleWebRTCAnswer(data));
+      _socket!.on('webrtc_ice_candidate', (data) => _handleWebRTCIceCandidate(data));
+    } catch (e) {
+      Logger('CallService').severe('Error connecting to signaling server', e);
+    }
   }
 
   Future<void> _setupDataChannel() async {
