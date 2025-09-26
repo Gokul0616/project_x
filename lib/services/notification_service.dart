@@ -183,4 +183,8 @@ class NotificationService {
   static Future<void> cancelCallNotification(String callId) async {
     await _notifications.cancel(callId.hashCode);
   }
+
+  static Future<void> cancelAllNotifications() async {
+    await _notifications.cancelAll();
+  }
 }
