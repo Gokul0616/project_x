@@ -55,6 +55,9 @@ class CallService extends ChangeNotifier {
   // Initialize WebRTC
   Future<void> initialize() async {
     try {
+      // Get current user ID first
+      await _initializeCurrentUser();
+
       // Initialize WebRTC
       await _initializePeerConnection();
 
@@ -64,6 +67,22 @@ class CallService extends ChangeNotifier {
       Logger('CallService').info('CallService initialized successfully');
     } catch (e) {
       Logger('CallService').severe('Error initializing CallService', e);
+      rethrow;
+    }
+  }
+
+  Future<void> _initializeCurrentUser() async {
+    try {
+      final result = await ApiService.getCurrentUser();
+      if (result['success'] == true) {
+        _currentUserId = result['user'].id;
+        Logger('CallService').info('Current user ID set: $_currentUserId');
+      } else {
+        Logger('CallService').severe('Failed to get current user');
+        throw Exception('Failed to get current user ID');
+      }
+    } catch (e) {
+      Logger('CallService').severe('Error getting current user', e);
       rethrow;
     }
   }
