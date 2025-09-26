@@ -82,9 +82,7 @@ class CallService extends ChangeNotifier {
     // Set up event handlers
     _peerConnection!.onIceCandidate = (candidate) {
       if (candidate != null) {
-        _sendSignalingMessage('ice_candidate', {
-          'candidate': candidate.toMap(),
-        });
+        _sendICECandidate(candidate);
       }
     };
 
