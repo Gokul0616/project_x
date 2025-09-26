@@ -224,12 +224,42 @@ class CallService extends ChangeNotifier {
       // Get local media stream
       await _getLocalMediaStream();
 
-      notifyListeners();
-      Logger('CallService').info('Call accepted successfully');
-      return true;
+      // Accept call via API
+      final response = await ApiService.makeRequest('POST', '/calls/accept', {
+        'callId': callId,
+        'callType': callType == CallType.video ? 'video' : 'voice',
+      });
+
+      if (response.statusCode == 200) {
+        notifyListeners();
+        Logger('CallService').info('Call accepted successfully');
+        return true;
+      } else {
+        final error = jsonDecode(response.body);
+        Logger('CallService').severe('Error accepting call: ${error['message']}');
+        return false;
+      }
     } catch (e) {
       Logger('CallService').severe('Error accepting call', e);
       return false;
+    }
+  }
+
+  Future<void> rejectCall(String callId) async {
+    try {
+      final response = await ApiService.makeRequest('POST', '/calls/reject', {
+        'callId': callId,
+      });
+
+      if (response.statusCode == 200) {
+        _cleanup();
+        Logger('CallService').info('Call rejected successfully');
+      } else {
+        final error = jsonDecode(response.body);
+        Logger('CallService').severe('Error rejecting call: ${error['message']}');
+      }
+    } catch (e) {
+      Logger('CallService').severe('Error rejecting call', e);
     }
   }
 
