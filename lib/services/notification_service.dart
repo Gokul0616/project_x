@@ -121,7 +121,66 @@ class NotificationService {
     await _notifications.cancel(id);
   }
 
-  static Future<void> cancelAllNotifications() async {
-    await _notifications.cancelAll();
+  static Future<void> showIncomingCall({
+    required String callId,
+    required String callerName,
+    required String callType,
+  }) async {
+    await initialize();
+
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+      'incoming_calls',
+      'Incoming Calls',
+      channelDescription: 'Notifications for incoming calls',
+      importance: Importance.max,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.call,
+      fullScreenIntent: true,
+      autoCancel: false,
+      ongoing: true,
+      enableLights: true,
+      enableVibration: true,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('phone_ringing'),
+      actions: [
+        AndroidNotificationAction(
+          'accept_call',
+          'Accept',
+          icon: DrawableResourceAndroidBitmap('ic_call_accept'),
+        ),
+        AndroidNotificationAction(
+          'decline_call',
+          'Decline',
+          icon: DrawableResourceAndroidBitmap('ic_call_decline'),
+        ),
+      ],
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      sound: 'phone_ringing.aiff',
+      categoryIdentifier: 'INCOMING_CALL',
+      interruptionLevel: InterruptionLevel.critical,
+    );
+
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      callId.hashCode,
+      'Incoming ${callType == 'video' ? 'Video' : 'Voice'} Call',
+      'From $callerName',
+      details,
+      payload: 'incoming_call:$callId:$callType',
+    );
+  }
+
+  static Future<void> cancelCallNotification(String callId) async {
+    await _notifications.cancel(callId.hashCode);
   }
 }
