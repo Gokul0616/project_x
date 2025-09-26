@@ -37,10 +37,30 @@ class NotificationService {
   static void _onNotificationTapped(NotificationResponse response) {
     final payload = response.payload;
     if (payload != null) {
-      // Navigate to the specific post
-      // This will be handled by the main app
-      print('Notification tapped with payload: $payload');
+      if (payload.startsWith('incoming_call:')) {
+        final parts = payload.split(':');
+        if (parts.length >= 3) {
+          final callId = parts[1];
+          final callType = parts[2];
+          final actionId = response.actionId;
+          
+          if (actionId == 'accept_call') {
+            _handleCallAction('accept', callId, callType);
+          } else if (actionId == 'decline_call') {
+            _handleCallAction('decline', callId, callType);
+          }
+        }
+      } else {
+        // Handle regular notifications
+        print('Notification tapped with payload: $payload');
+      }
     }
+  }
+
+  static void _handleCallAction(String action, String callId, String callType) {
+    // This will be handled by the main app through a callback mechanism
+    print('Call action: $action for call $callId ($callType)');
+    // TODO: Implement callback to CallService
   }
 
   static Future<void> showUploadProgress({
