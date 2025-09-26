@@ -80,36 +80,39 @@ const connectDB = async () => {
 };
 
 // Start server
-const PORT = process.env.PORT || 8001;
-const options = {
-  key: fs.readFileSync('certs/private-key.pem'),
-  cert: fs.readFileSync('certs/certificate.pem')
-};
-
+const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  // Create HTTP server
-  const server = http.createServer(app);
+    // Create HTTP server
+    const server = http.createServer(app);
 
-  // Create Socket.IO server
-  const io = socketIo(server, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
+    // Create Socket.IO server
+    const io = socketIo(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
 
-  // Socket.IO connection handling
-  require('./services/socketService')(io);
+    // Make io available to routes
+    app.set('io', io);
 
-  // Start server
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Socket.IO server is ready`);
-  });
+    // Socket.IO connection handling
+    require('./services/socketService')(io);
+
+    // Start server
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+      console.log(`Socket.IO server is ready`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 };
 
 startServer();
