@@ -432,6 +432,10 @@ class CallService extends ChangeNotifier {
 
   void _handleCallEnd(dynamic data) {
     if (data['callId'] == _currentCallId) {
+      // Cancel any call notifications
+      if (_currentCallId != null) {
+        NotificationService.cancelCallNotification(_currentCallId!);
+      }
       _cleanup();
       Logger('CallService').info('Call ended by remote user');
     }
