@@ -358,17 +358,62 @@ class CallService extends ChangeNotifier {
   }
 
   void _handleCallEnd(dynamic data) {
-    _cleanup();
-    Logger('CallService').info('Call ended by remote user');
+    if (data['callId'] == _currentCallId) {
+      _cleanup();
+      Logger('CallService').info('Call ended by remote user');
+    }
   }
 
-  void _sendSignalingMessage(String type, dynamic data) {
-    if (_socket != null && _socket!.connected) {
-      _socket!.emit(type, {
-        ...data,
-        'toUserId': _remoteUserId,
-        'fromUserId': _getCurrentUserId(),
+  void _sendCallRejectResponse(String callId, String reason) {
+    try {
+      ApiService.makeRequest('POST', '/calls/reject', {
+        'callId': callId,
       });
+    } catch (e) {
+      Logger('CallService').severe('Error sending call reject response', e);
+    }
+  }
+
+  void _sendWebRTCOffer(RTCSessionDescription offer) {
+    try {
+      ApiService.makeRequest('POST', '/calls/offer', {
+        'callId': _currentCallId,
+        'offer': {
+          'sdp': offer.sdp,
+          'type': offer.type,
+        },
+      });
+    } catch (e) {
+      Logger('CallService').severe('Error sending WebRTC offer', e);
+    }
+  }
+
+  void _sendWebRTCAnswer(RTCSessionDescription answer) {
+    try {
+      ApiService.makeRequest('POST', '/calls/answer', {
+        'callId': _currentCallId,
+        'answer': {
+          'sdp': answer.sdp,
+          'type': answer.type,
+        },
+      });
+    } catch (e) {
+      Logger('CallService').severe('Error sending WebRTC answer', e);
+    }
+  }
+
+  void _sendICECandidate(RTCIceCandidate candidate) {
+    try {
+      ApiService.makeRequest('POST', '/calls/ice-candidate', {
+        'callId': _currentCallId,
+        'candidate': {
+          'candidate': candidate.candidate,
+          'sdpMid': candidate.sdpMid,
+          'sdpMLineIndex': candidate.sdpMLineIndex,
+        },
+      });
+    } catch (e) {
+      Logger('CallService').severe('Error sending ICE candidate', e);
     }
   }
 
