@@ -264,52 +264,94 @@ class CallService extends ChangeNotifier {
   }
 
   // Signaling message handlers
-  void _handleCallOffer(dynamic data) {
+  void _handleIncomingCall(dynamic data) {
     if (_callState != CallState.idle) {
       // Busy, reject the call
-      _sendSignalingMessage('call_reject', {
-        'callId': data['callId'],
-        'reason': 'busy',
-      });
+      _sendCallRejectResponse(data['callId'], 'busy');
       return;
     }
 
     _currentCallId = data['callId'];
-    _remoteUserId = data['fromUserId'];
+    _remoteUserId = data['callerId'];
     _callType = data['callType'] == 'video' ? CallType.video : CallType.voice;
     _isInitiator = false;
     _callState = CallState.ringing;
 
     notifyListeners();
-    Logger('CallService').info('Call offer received');
+    Logger('CallService').info('Incoming call received from ${data['callerName']}');
   }
 
-  Future<void> _handleCallAnswer(dynamic data) async {
-    try {
-      final answer = RTCSessionDescription(
-        data['answer']['sdp'],
-        data['answer']['type'],
-      );
-
-      await _peerConnection!.setRemoteDescription(answer);
+  void _handleCallAccepted(dynamic data) {
+    if (data['callId'] == _currentCallId) {
       _callState = CallState.connected;
       notifyListeners();
-      Logger('CallService').info('Call answer received');
-    } catch (e) {
-      Logger('CallService').severe('Error handling call answer', e);
+      Logger('CallService').info('Call accepted by recipient');
     }
   }
 
-  Future<void> _handleIceCandidate(dynamic data) async {
-    try {
-      final candidate = RTCIceCandidate(
-        data['candidate']['candidate'],
-        data['candidate']['sdpMid'],
-        data['candidate']['sdpMLineIndex'],
-      );
+  void _handleCallRejected(dynamic data) {
+    if (data['callId'] == _currentCallId) {
+      _callState = CallState.ended;
+      notifyListeners();
+      Logger('CallService').info('Call rejected by recipient');
+      _cleanup();
+    }
+  }
 
-      await _peerConnection!.addCandidate(candidate);
-      Logger('CallService').info('ICE candidate added');
+  void _handleWebRTCOffer(dynamic data) async {
+    try {
+      if (data['callId'] == _currentCallId) {
+        final offer = RTCSessionDescription(
+          data['offer']['sdp'],
+          data['offer']['type'],
+        );
+
+        await _peerConnection!.setRemoteDescription(offer);
+        
+        // Create answer
+        final answer = await _peerConnection!.createAnswer();
+        await _peerConnection!.setLocalDescription(answer);
+
+        // Send answer back
+        _sendWebRTCAnswer(answer);
+        
+        Logger('CallService').info('WebRTC offer processed and answer sent');
+      }
+    } catch (e) {
+      Logger('CallService').severe('Error handling WebRTC offer', e);
+    }
+  }
+
+  void _handleWebRTCAnswer(dynamic data) async {
+    try {
+      if (data['callId'] == _currentCallId) {
+        final answer = RTCSessionDescription(
+          data['answer']['sdp'],
+          data['answer']['type'],
+        );
+
+        await _peerConnection!.setRemoteDescription(answer);
+        _callState = CallState.connected;
+        notifyListeners();
+        Logger('CallService').info('WebRTC answer received and processed');
+      }
+    } catch (e) {
+      Logger('CallService').severe('Error handling WebRTC answer', e);
+    }
+  }
+
+  void _handleWebRTCIceCandidate(dynamic data) async {
+    try {
+      if (data['callId'] == _currentCallId) {
+        final candidate = RTCIceCandidate(
+          data['candidate']['candidate'],
+          data['candidate']['sdpMid'],
+          data['candidate']['sdpMLineIndex'],
+        );
+
+        await _peerConnection!.addCandidate(candidate);
+        Logger('CallService').info('ICE candidate added successfully');
+      }
     } catch (e) {
       Logger('CallService').severe('Error adding ICE candidate', e);
     }
