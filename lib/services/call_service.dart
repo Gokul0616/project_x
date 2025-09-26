@@ -181,15 +181,22 @@ class CallService extends ChangeNotifier {
       _setupDataChannel();
 
       // Start call via backend API
-      final response =
-          await ApiService.makeRequest('POST', '/api/calls/start', {
-            'recipientId': remoteUserId,
-            'callType': callType == CallType.video ? 'video' : 'voice',
-          });
+      final response = await ApiService.makeRequest('POST', '/calls/start', {
+        'recipientId': remoteUserId,
+        'callType': callType == CallType.video ? 'video' : 'voice',
+      });
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         _currentCallId = data['callId'];
+        
+        // Create WebRTC offer
+        final offer = await _peerConnection!.createOffer();
+        await _peerConnection!.setLocalDescription(offer);
+        
+        // Send offer via API
+        _sendWebRTCOffer(offer);
+        
         Logger('CallService').info('Call started successfully: $_currentCallId');
         return _currentCallId;
       } else {
