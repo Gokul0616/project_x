@@ -286,6 +286,9 @@ class CallService extends ChangeNotifier {
   Future<void> endCall() async {
     try {
       if (_currentCallId != null) {
+        // Cancel call notification
+        NotificationService.cancelCallNotification(_currentCallId!);
+        
         final response = await ApiService.makeRequest('POST', '/calls/end', {
           'callId': _currentCallId,
         });
