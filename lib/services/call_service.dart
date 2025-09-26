@@ -265,12 +265,23 @@ class CallService extends ChangeNotifier {
 
   Future<void> endCall() async {
     try {
-      _sendSignalingMessage('call_end', {'callId': _currentCallId});
+      if (_currentCallId != null) {
+        final response = await ApiService.makeRequest('POST', '/calls/end', {
+          'callId': _currentCallId,
+        });
+
+        if (response.statusCode == 200) {
+          Logger('CallService').info('Call ended successfully');
+        } else {
+          final error = jsonDecode(response.body);
+          Logger('CallService').severe('Error ending call: ${error['message']}');
+        }
+      }
 
       await _cleanup();
-      Logger('CallService').info('Call ended successfully');
     } catch (e) {
       Logger('CallService').severe('Error ending call', e);
+      await _cleanup();
     }
   }
 
