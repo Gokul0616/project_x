@@ -6,7 +6,7 @@ class ApiConfig {
   );
 
   // Different base URLs for different environments
-  static const String _developmentUrl = 'http://192.168.1.19:3000/api';
+  static const String _developmentUrl = 'http://localhost:8001/api';
   static const String _productionUrl = 'https://your-production-domain.com/api';
   static const String _stagingUrl = 'https://staging.your-domain.com/api';
 
