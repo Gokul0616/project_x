@@ -17,7 +17,14 @@ void main() async {
   // Initialize notification service
   await NotificationService.initialize();
 
-  runApp(const PulseApp());
+  // Initialize CallService
+  final callService = CallService();
+  await callService.initialize().catchError((error) {
+    print('Failed to initialize CallService: $error');
+    // Continue without call service for now
+  });
+
+  runApp(PulseApp(callService: callService));
 }
 
 class PulseApp extends StatelessWidget {
