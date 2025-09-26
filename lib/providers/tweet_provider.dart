@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:logging/logging.dart';
 import '../models/tweet_model.dart';
 import '../services/api_service.dart';
 
@@ -64,7 +65,7 @@ class TweetProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Auto-refresh error: $e');
+      Logger('TweetProvider').severe('Auto-refresh error', e);
     }
   }
 
@@ -171,7 +172,7 @@ class TweetProvider with ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      print('Error loading recommended tweets: $e');
+      Logger('TweetProvider').severe('Error loading recommended tweets', e);
     }
   }
 
@@ -201,7 +202,7 @@ class TweetProvider with ChangeNotifier {
       
       await Future.wait(futures);
     } catch (e) {
-      print('Error loading more tweets: $e');
+      Logger('TweetProvider').severe('Error loading more tweets', e);
     } finally {
       _isLoadingMore = false;
       notifyListeners();
@@ -240,7 +241,7 @@ class TweetProvider with ChangeNotifier {
     try {
       await ApiService.trackInteraction(tweetId, interactionType);
     } catch (e) {
-      print('Error tracking interaction: $e');
+      Logger('TweetProvider').severe('Error tracking interaction', e);
     }
   }
 
@@ -320,7 +321,7 @@ class TweetProvider with ChangeNotifier {
         });
 
         notifyListeners();
-        print('Error liking tweet: ${result['message']}');
+        Logger('TweetProvider').severe('Error liking tweet: ${result['message']}');
       }
     } catch (e) {
       // If network error, revert the optimistic update
@@ -346,7 +347,7 @@ class TweetProvider with ChangeNotifier {
       });
 
       notifyListeners();
-      print('Error liking tweet: $e');
+      Logger('TweetProvider').severe('Error liking tweet', e);
     }
   }
 
@@ -426,7 +427,7 @@ class TweetProvider with ChangeNotifier {
         });
 
         notifyListeners();
-        print('Error retweeting: ${result['message']}');
+        Logger('TweetProvider').severe('Error retweeting: ${result['message']}');
       }
     } catch (e) {
       // If network error, revert the optimistic update
@@ -452,7 +453,7 @@ class TweetProvider with ChangeNotifier {
       });
 
       notifyListeners();
-      print('Error retweeting: $e');
+      Logger('TweetProvider').severe('Error retweeting', e);
     }
   }
 
@@ -502,7 +503,7 @@ class TweetProvider with ChangeNotifier {
       notifyListeners();
       return replies;
     } catch (e) {
-      print('Error loading replies: $e');
+      Logger('TweetProvider').severe('Error loading replies', e);
       return [];
     }
   }
@@ -520,7 +521,7 @@ class TweetProvider with ChangeNotifier {
     try {
       return await ApiService.getUserTweets(username);
     } catch (e) {
-      print('Error loading user tweets: $e');
+      Logger('TweetProvider').severe('Error loading user tweets', e);
       return [];
     }
   }
@@ -529,7 +530,7 @@ class TweetProvider with ChangeNotifier {
     try {
       return await ApiService.getUserReplies(username);
     } catch (e) {
-      print('Error loading user replies: $e');
+      Logger('TweetProvider').severe('Error loading user replies', e);
       return [];
     }
   }
@@ -538,7 +539,7 @@ class TweetProvider with ChangeNotifier {
     try {
       return await ApiService.getUserLikedTweets(username);
     } catch (e) {
-      print('Error loading user liked tweets: $e');
+      Logger('TweetProvider').severe('Error loading user liked tweets', e);
       return [];
     }
   }

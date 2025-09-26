@@ -202,524 +202,294 @@ class _EnhancedTweetCardState extends State<EnhancedTweetCard>
       label:
           'Tweet by ${widget.tweet.author.displayName}, ${widget.tweet.content}',
       button: true,
-      child: Stack(
-        children: [
-          // Main tweet card
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TweetDetailScreen(tweet: widget.tweet),
-                ),
-              );
-            },
-            onDoubleTap: _handleDoubleTap,
-            onHorizontalDragEnd: (details) {
-              // X-style swipe left for quick actions
-              if (details.primaryVelocity! < -500) {
-                _showQuickActionsMenu();
-              }
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Theme.of(context).dividerColor,
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                  vertical: 10.0,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Profile Avatar with X-style interactions
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UserProfileScreen(
-                              username: widget.tweet.author.username,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: AppTheme.twitterBlue,
-                          backgroundImage:
-                              widget.tweet.author.profileImage != null
-                              ? CachedNetworkImageProvider(
-                                  widget.tweet.author.profileImage!,
-                                )
-                              : null,
-                          child: widget.tweet.author.profileImage == null
-                              ? Text(
-                                  widget.tweet.author.displayName.isNotEmpty
-                                      ? widget.tweet.author.displayName[0]
-                                            .toUpperCase()
-                                      : widget.tweet.author.username.isNotEmpty
-                                      ? widget.tweet.author.username[0]
-                                            .toUpperCase()
-                                      : 'U',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Tweet Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // User Info and Time - X-style with verified badge placeholder
-                          Row(
-                            children: [
-                              Flexible(
-                                flex: 2,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => UserProfileScreen(
-                                          username: widget.tweet.author.username,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    widget.tweet.author.displayName,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                ),
-                              ),
-                              // Placeholder for verified badge (future AI integration)
-                              const SizedBox(width: 4),
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: const BoxDecoration(
-                                  color: Colors.transparent,
-                                ),
-                                child: const Icon(
-                                  Icons.verified,
-                                  size: 16,
-                                  color: Colors.transparent, // Hidden for now
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                flex: 2,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => UserProfileScreen(
-                                          username: widget.tweet.author.username,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    '@${widget.tweet.author.username}',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 15,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '·',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _formatDate(widget.tweet.createdAt),
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const Spacer(),
-                              // Three dots menu - placeholder for AI features
-                              GestureDetector(
-                                onTap: () {
-                                  // Future: Show AI analysis, context, etc.
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('AI features coming soon!'),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                },
-                                child: Icon(
-                                  Icons.more_horiz,
-                                  color: Colors.grey[600],
-                                  size: 18,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-
-                          // Tweet Text with X-style truncation
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final textSpan = RichTweetText.buildTextSpan(
-                                text: widget.tweet.content,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                  height: 1.3,
-                                ),
-                                context: context,
-                              );
-
-                              final textPainter = TextPainter(
-                                text: textSpan,
-                                maxLines: maxLines,
-                                textDirection: flutter.TextDirection.ltr,
-                              )..layout(maxWidth: constraints.maxWidth);
-
-                              final isOverflowing =
-                                  textPainter.didExceedMaxLines ||
-                                  widget.tweet.content.length >
-                                      maxContentLength;
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  RichTweetText(
-                                    text: widget.tweet.content,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                      height: 1.3,
-                                    ),
-                                    maxLines: _isExpanded ? null : maxLines,
-                                    overflow: _isExpanded
-                                        ? null
-                                        : TextOverflow.ellipsis,
-                                  ),
-                                  if (isOverflowing && !_isExpanded)
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _isExpanded = true;
-                                        });
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 4.0,
-                                        ),
-                                        child: Text(
-                                          'Show more',
-                                          style: TextStyle(
-                                            color: AppTheme.twitterBlue,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-
-                          // Media content
-                          if (widget.tweet.mediaFiles.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            MediaGridWidget(
-                              mediaFiles: widget.tweet.mediaFiles
-                                  .map(
-                                    (media) => {
-                                      'url': media.url,
-                                      'type': media.type,
-                                      'isLocal': false,
-                                      'filename': media.filename,
-                                      'size': media.size,
-                                      'thumbnailUrl': media.thumbnailUrl,
-                                    },
-                                  )
-                                  .toList(),
-                              enableTap: true,
-                            ),
-                          ] else if (widget.tweet.imageUrl != null) ...[
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: CachedNetworkImage(
-                                imageUrl: widget.tweet.imageUrl!,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  height: 200,
-                                  color: Colors.grey[300],
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppTheme.twitterBlue,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) => Container(
-                                  height: 200,
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.error),
-                                ),
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 8),
-
-                          // Enhanced action buttons with X-style animations
-                          GestureDetector(
-                            onTap: () {}, // Prevent parent tap
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _EnhancedActionButton(
-                                  icon: Icons.chat_bubble_outline,
-                                  count: widget.tweet.repliesCount,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => TweetDetailScreen(
-                                          tweet: widget.tweet,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                AnimatedBuilder(
-                                  animation: _retweetAnimation,
-                                  builder: (context, child) {
-                                    return Transform.scale(
-                                      scale: _retweetAnimation.value,
-                                      child: _EnhancedActionButton(
-                                        icon: Icons.repeat,
-                                        count: widget.tweet.retweetsCount,
-                                        isActive: widget.tweet.isRetweeted,
-                                        activeColor: Colors.green,
-                                        onTap: _handleRetweet,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                AnimatedBuilder(
-                                  animation: _likeAnimation,
-                                  builder: (context, child) {
-                                    return Transform.scale(
-                                      scale: _likeAnimation.value,
-                                      child: _EnhancedActionButton(
-                                        icon: widget.tweet.isLiked
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        count: widget.tweet.likesCount,
-                                        isActive: widget.tweet.isLiked,
-                                        activeColor: Colors.red,
-                                        onTap: _handleLike,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                _EnhancedActionButton(
-                                  icon: Icons.share_outlined,
-                                  count: 0,
-                                  onTap: () {
-                                    // Future: Enhanced sharing options
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Share feature enhanced - coming soon!',
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TweetDetailScreen(tweet: widget.tweet),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 0.5,
               ),
             ),
           ),
-          // Quick actions overlay (X-style swipe left menu)
-          if (_showQuickActions)
-            Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.1),
-                child: SlideTransition(
-                  position: _quickActionsAnimation,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      width: 200,
-                      height: 80,
-                      margin: const EdgeInsets.only(right: 20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 10.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Profile Avatar
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserProfileScreen(
+                          username: widget.tweet.author.username,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          GestureDetector(
-                            onTap: _handleNotInterested,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.not_interested, color: Colors.red),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Not interested',
-                                    style: TextStyle(fontSize: 10),
-                                  ),
-                                ],
-                              ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: AppTheme.twitterBlue,
+                    backgroundImage:
+                        widget.tweet.author.profileImage != null
+                        ? CachedNetworkImageProvider(
+                            widget.tweet.author.profileImage!,
+                          )
+                        : null,
+                    child: widget.tweet.author.profileImage == null
+                        ? Text(
+                            widget.tweet.author.displayName.isNotEmpty
+                                ? widget.tweet.author.displayName[0]
+                                    .toUpperCase()
+                                : widget.tweet.author.username.isNotEmpty
+                                ? widget.tweet.author.username[0]
+                                    .toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: _handleShowLessOften,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.visibility_off,
-                                    color: Colors.orange,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  const Text(
-                                    'Show less',
-                                    style: TextStyle(fontSize: 10),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                          )
+                        : null,
                   ),
                 ),
+                const SizedBox(width: 12),
+                // Tweet Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // User Info and Time
+                      Row(
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UserProfileScreen(
+                                      username: widget.tweet.author.username,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                widget.tweet.author.displayName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Placeholder for verified badge
+                          if (widget.tweet.author.isVerified)
+                            const Icon(
+                              Icons.verified,
+                              size: 16,
+                              color: AppTheme.twitterBlue,
+                            ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '@${widget.tweet.author.username}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 15,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '·',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDate(widget.tweet.createdAt),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 15,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Three dots menu
+                          GestureDetector(
+                            onTap: () {
+                              // Show bottom sheet menu
+                            },
+                            child: Icon(
+                              Icons.more_horiz,
+                              color: Colors.grey[600],
+                              size: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Tweet Text
+                      RichTweetText(
+                        text: widget.tweet.content,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.color,
+                          height: 1.4,
+                        ),
+                      ),
+
+                      // Media content
+                      if (widget.tweet.mediaFiles.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        MediaGridWidget(
+                          mediaFiles: widget.tweet.mediaFiles
+                              .map(
+                                (media) => {
+                                  'url': media.url,
+                                  'type': media.type,
+                                  'isLocal': false,
+                                  'filename': media.filename,
+                                  'size': media.size,
+                                  'thumbnailUrl': media.thumbnailUrl,
+                                },
+                              )
+                              .toList(),
+                          enableTap: true,
+                        ),
+                      ] else if (widget.tweet.imageUrl != null) ...[
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.tweet.imageUrl!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 200,
+                              color: Colors.grey[200],
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: 200,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.error),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 12),
+
+                      // Action buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildActionButton(
+                            icon: Icons.chat_bubble_outline,
+                            count: widget.tweet.repliesCount,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TweetDetailScreen(
+                                    tweet: widget.tweet,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildActionButton(
+                            icon: Icons.repeat,
+                            count: widget.tweet.retweetsCount,
+                            isActive: widget.tweet.isRetweeted,
+                            activeColor: Colors.green,
+                            onTap: _handleRetweet,
+                          ),
+                          _buildActionButton(
+                            icon: widget.tweet.isLiked
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            count: widget.tweet.likesCount,
+                            isActive: widget.tweet.isLiked,
+                            activeColor: Colors.red,
+                            onTap: _handleLike,
+                          ),
+                          _buildActionButton(
+                            icon: Icons.share_outlined,
+                            onTap: () {
+                              // Share functionality
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    int? count,
+    bool isActive = false,
+    Color? activeColor,
+    required VoidCallback onTap,
+  }) {
+    final color = isActive ? activeColor : Colors.grey[600];
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          if (count != null && count > 0) ...[
+            const SizedBox(width: 6),
+            Text(
+              count.toString(),
+              style: TextStyle(
+                color: color,
+                fontSize: 14,
               ),
             ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _EnhancedActionButton extends StatelessWidget {
-  final IconData icon;
-  final int count;
-  final bool isActive;
-  final Color? activeColor;
-  final VoidCallback onTap;
-
-  const _EnhancedActionButton({
-    required this.icon,
-    required this.count,
-    this.isActive = false,
-    this.activeColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive && activeColor != null
-        ? activeColor!
-        : Colors.grey[600]!;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: color),
-            if (count > 0) ...[
-              const SizedBox(width: 4),
-              Text(
-                count > 999
-                    ? '${(count / 1000).toStringAsFixed(1)}k'
-                    : count.toString(),
-                style: TextStyle(
-                  color: color,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Re-use the existing RichTweetText widget with enhancements
 class RichTweetText extends StatelessWidget {
   final String text;
   final TextStyle? style;
@@ -766,13 +536,7 @@ class RichTweetText extends StatelessWidget {
         spans.add(
           TextSpan(
             text: text.substring(lastEnd, match.start),
-            style:
-                style ??
-                TextStyle(
-                  fontSize: 15,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                  height: 1.3,
-                ),
+            style: style,
           ),
         );
       }
@@ -784,18 +548,17 @@ class RichTweetText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: matchedText,
-          style: TextStyle(
-            fontSize: 15,
+          style: const TextStyle(
             color: AppTheme.twitterBlue,
             fontWeight: FontWeight.w500,
           ),
           recognizer: isClickable
               ? (TapGestureRecognizer()
-                  ..onTap = () {
-                    if (isHashtag || isMention) {
-                      _handleTap(context, matchedText);
-                    }
-                  })
+                ..onTap = () {
+                  if (isHashtag || isMention) {
+                    _handleTap(context, matchedText);
+                  }
+                })
               : null,
         ),
       );
@@ -807,13 +570,7 @@ class RichTweetText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: text.substring(lastEnd),
-          style:
-              style ??
-              TextStyle(
-                fontSize: 15,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                height: 1.3,
-              ),
+          style: style,
         ),
       );
     }
@@ -821,13 +578,7 @@ class RichTweetText extends StatelessWidget {
     if (spans.isEmpty) {
       return TextSpan(
         text: text,
-        style:
-            style ??
-            TextStyle(
-              fontSize: 15,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-              height: 1.3,
-            ),
+        style: style,
       );
     }
 

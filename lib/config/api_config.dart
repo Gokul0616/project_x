@@ -1,14 +1,16 @@
 class ApiConfig {
   // Environment-based configuration
-  static const String _environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
-  
+  static const String _environment = String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: 'development',
+  );
+
   // Different base URLs for different environments
-  static const String _developmentUrl = 'http://192.168.1.19:8001/api';
+  static const String _developmentUrl = 'http://192.168.1.19:3000/api';
   static const String _productionUrl = 'https://your-production-domain.com/api';
   static const String _stagingUrl = 'https://staging.your-domain.com/api';
-  
+
   // Platform-specific URLs for development
-  static const String _androidEmulator = 'http://10.0.2.2:8001/api';
   static const String _iosSimulator = 'http://localhost:8001/api';
 
   // Get base URL based on environment

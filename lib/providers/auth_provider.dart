@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:logging/logging.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
@@ -33,18 +34,13 @@ class AuthProvider with ChangeNotifier {
         if (result['success'] == true) {
           _user = result['user'];
           _isAuthenticated = true;
-        } else {
-          // Invalid token, remove it 
-          await prefs.remove('token');
-          _isAuthenticated = false;
-          _user = null;
         }
       } else {
         _isAuthenticated = false;
         _user = null;
       }
     } catch (e) {
-      print('Error checking auth status: $e');
+      Logger('AuthProvider').severe('Error checking auth status', e);
       _isAuthenticated = false;
       _user = null;
     } finally {
@@ -123,7 +119,7 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Error refreshing user data: $e');
+      Logger('AuthProvider').severe('Error refreshing user data', e);
     }
   }
 }

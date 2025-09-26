@@ -1,8 +1,42 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const Tweet = require('../models/Tweet');
 const auth = require('../middleware/auth');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+// Multer configuration for avatar uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  }
+});
 
 const router = express.Router();
 
@@ -253,6 +287,38 @@ router.get('/:username/likes', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/users/:username/follow-status
+// @desc    Get follow status between current user and target user
+// @access  Private
+router.get('/:username/follow-status', auth, async (req, res) => {
+  try {
+    const targetUser = await User.findOne({ username: req.params.username });
+
+    if (!targetUser) {
+      return res.status(404).json({
+        message: 'User not found'
+      });
+    }
+
+    const currentUser = await User.findById(req.user._id);
+    const isFollowing = currentUser.following.includes(targetUser._id);
+    const isFollowedBy = targetUser.followers.includes(currentUser._id);
+
+    res.json({
+      isFollowing,
+      isFollowedBy,
+      followersCount: targetUser.followers.length,
+      followingCount: targetUser.following.length
+    });
+
+  } catch (error) {
+    console.error('Get follow status error:', error);
+    res.status(500).json({
+      message: 'Server error while getting follow status'
+    });
+  }
+});
+
 // @route   POST /api/users/:username/follow
 // @desc    Follow/unfollow a user
 // @access  Private
@@ -298,6 +364,52 @@ router.post('/:username/follow', auth, async (req, res) => {
     console.error('Follow user error:', error);
     res.status(500).json({
       message: 'Server error while following user'
+    });
+  }
+});
+
+// @route   POST /api/users/profile/avatar
+// @desc    Upload profile avatar
+// @access  Private
+router.post('/profile/avatar', auth, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'No avatar file uploaded'
+      });
+    }
+
+    // Validate file type
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({
+        message: 'Only image files are allowed'
+      });
+    }
+
+    // Validate file size (max 5MB)
+    if (req.file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        message: 'File size too large. Maximum size is 5MB'
+      });
+    }
+
+    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage: avatarUrl },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({
+      message: 'Avatar updated successfully',
+      user: updatedUser.toJSON()
+    });
+
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({
+      message: 'Server error while uploading avatar'
     });
   }
 });

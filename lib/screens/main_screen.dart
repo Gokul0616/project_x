@@ -267,7 +267,7 @@ class _MainScreenState extends State<MainScreen> {
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const FaIcon(FontAwesomeIcons.bell, size: 26),
+                      const Icon(Icons.notifications_outlined, size: 26),
                       if (notificationProvider.unreadCount > 0)
                         Positioned(
                           right: -2,
@@ -304,7 +304,7 @@ class _MainScreenState extends State<MainScreen> {
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      const FaIcon(FontAwesomeIcons.solidBell, size: 26),
+                      const Icon(Icons.notifications, size: 26),
                       if (notificationProvider.unreadCount > 0)
                         Positioned(
                           right: -2,
@@ -383,15 +383,11 @@ class _MainScreenState extends State<MainScreen> {
             },
           ),
         );
-        titleWidget = GestureDetector(
-          onTap: _handleHomeTap, // Make X logo tappable for scroll to top
-          child: const Text(
-            'X',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.twitterBlue,
-            ),
+        titleWidget = const Text(
+          'Home',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         );
         actions = [

@@ -1,3 +1,4 @@
+import 'package:logging/logging.dart';
 import 'user_model.dart';
 import 'media_file_model.dart';
 
@@ -62,7 +63,7 @@ class Tweet {
         parentTweet: json['parentTweet'] is Map<String, dynamic> ? Tweet.fromJson(json['parentTweet']) : null,
       );
     } catch (e) {
-      print('Error parsing tweet from JSON: $e');
+      Logger('Tweet').severe('Error parsing tweet from JSON', e);
       // Return a default tweet if parsing fails
       return Tweet(
         id: json['_id'] ?? json['id'] ?? '',

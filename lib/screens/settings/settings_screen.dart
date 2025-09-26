@@ -13,6 +13,9 @@ import 'blocked_accounts_screen.dart';
 import '../data/data_download_screen.dart';
 import 'language_settings_screen.dart';
 import 'accessibility_settings_screen.dart';
+import 'edit_profile_screen.dart';
+import 'data_usage_screen.dart';
+import 'help_center_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -35,12 +38,27 @@ class SettingsScreen extends StatelessWidget {
             context,
             icon: Icons.person_outline,
             title: 'Account information',
-            subtitle: 'See your account information like your phone number and email address.',
+            subtitle:
+                'See your account information like your phone number and email address.',
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AccountSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          _buildSettingItem(
+            context,
+            icon: Icons.edit,
+            title: 'Edit profile',
+            subtitle: 'Update your profile information and photo.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
                 ),
               );
             },
@@ -63,7 +81,8 @@ class SettingsScreen extends StatelessWidget {
             context,
             icon: Icons.download,
             title: 'Download an archive of your data',
-            subtitle: 'Get insights into the type of information stored for your account.',
+            subtitle:
+                'Get insights into the type of information stored for your account.',
             onTap: () {
               Navigator.push(
                 context,
@@ -73,7 +92,7 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          
+
           // Privacy and Safety Section
           _buildSectionHeader(context, 'Privacy and safety'),
           _buildSettingItem(
@@ -94,7 +113,8 @@ class SettingsScreen extends StatelessWidget {
             context,
             icon: Icons.notifications_outlined,
             title: 'Notifications',
-            subtitle: 'Select the kinds of notifications you get about your activities and recommendations.',
+            subtitle:
+                'Select the kinds of notifications you get about your activities and recommendations.',
             onTap: () {
               Navigator.push(
                 context,
@@ -118,14 +138,16 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          
+
           // General Section
           _buildSectionHeader(context, 'General'),
           Consumer<ThemeProvider>(
             builder: (context, themeProvider, child) {
               return _buildSettingItem(
                 context,
-                icon: themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                icon: themeProvider.isDarkMode
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
                 title: 'Display',
                 subtitle: 'Manage your font size, color, and background.',
                 trailing: Row(
@@ -155,7 +177,8 @@ class SettingsScreen extends StatelessWidget {
             context,
             icon: Icons.language,
             title: 'Languages',
-            subtitle: 'Manage which languages are used to personalize your Pulse experience.',
+            subtitle:
+                'Manage which languages are used to personalize your Pulse experience.',
             onTap: () {
               Navigator.push(
                 context,
@@ -171,15 +194,20 @@ class SettingsScreen extends StatelessWidget {
             title: 'Data usage',
             subtitle: 'Limit how Pulse uses some of your network data.',
             onTap: () {
-              // TODO: Navigate to data usage settings
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DataUsageScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
             context,
             icon: Icons.accessibility,
             title: 'Accessibility',
-            subtitle: 'Manage aspects of your Pulse experience such as limiting color contrast and motion.',
+            subtitle:
+                'Manage aspects of your Pulse experience such as limiting color contrast and motion.',
             onTap: () {
               Navigator.push(
                 context,
@@ -189,7 +217,7 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          
+
           // Support Section
           _buildSectionHeader(context, 'Support'),
           _buildSettingItem(
@@ -198,8 +226,12 @@ class SettingsScreen extends StatelessWidget {
             title: 'Help Center',
             subtitle: 'Find answers to your questions and get support.',
             onTap: () {
-              // TODO: Navigate to help center
-              _showComingSoon(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HelpCenterScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
@@ -211,7 +243,7 @@ class SettingsScreen extends StatelessWidget {
               _showAboutDialog(context);
             },
           ),
-          
+
           // Debug Section (for testing)
           _buildSectionHeader(context, 'Debug'),
           _buildSettingItem(
@@ -228,7 +260,7 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          
+
           // Logout Section
           const SizedBox(height: 20),
           Container(
@@ -282,10 +314,7 @@ class SettingsScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).dividerColor,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
         ),
       ),
       child: ListTile(
@@ -293,16 +322,8 @@ class SettingsScreen extends StatelessWidget {
           icon,
           color: Theme.of(context).textTheme.bodyLarge?.color,
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
         trailing: trailing ?? const Icon(Icons.chevron_right),
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -349,7 +370,9 @@ class SettingsScreen extends StatelessWidget {
             SizedBox(height: 8),
             Text('Version 1.0.0'),
             SizedBox(height: 8),
-            Text('Built with Flutter and powered by passion for connecting people through meaningful conversations.'),
+            Text(
+              'Built with Flutter and powered by passion for connecting people through meaningful conversations.',
+            ),
           ],
         ),
         actions: [

@@ -19,6 +19,7 @@ const listRoutes = require('./routes/lists');
 const bookmarkRoutes = require('./routes/bookmarks');
 const momentRoutes = require('./routes/moments');
 const messageRoutes = require('./routes/messages');
+const callRoutes = require('./routes/calls');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/lists', listRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/moments', momentRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/calls', callRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -59,11 +61,12 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     message: 'Route not found'
   });
 });
+
 
 // Database connection
 const connectDB = async () => {

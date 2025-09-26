@@ -52,8 +52,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     try {
       final apiService = ApiService();
-      final response = await apiService.getUserProfile(widget.username);
-      
+      final response = await ApiService.getUserProfile(widget.username);
+
       if (response['user'] != null) {
         setState(() {
           _user = User.fromJson(response['user']);
@@ -127,9 +127,14 @@ class _UserProfileScreenState extends State<UserProfileScreen>
     if (_user == null) return;
 
     try {
-      final messageProvider = Provider.of<MessageProvider>(context, listen: false);
-      final conversation = await messageProvider.createConversationWithUser(_user!.id);
-      
+      final messageProvider = Provider.of<MessageProvider>(
+        context,
+        listen: false,
+      );
+      final conversation = await messageProvider.createConversationWithUser(
+        _user!.id,
+      );
+
       if (conversation != null && mounted) {
         Navigator.push(
           context,
@@ -165,9 +170,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('@${widget.username}'),
-        ),
+        appBar: AppBar(title: Text('@${widget.username}')),
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -183,9 +186,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('@${widget.username}'),
-        ),
+        appBar: AppBar(title: Text('@${widget.username}')),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -206,12 +207,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
     if (_user == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text('@${widget.username}'),
-        ),
-        body: const Center(
-          child: Text('User not found'),
-        ),
+        appBar: AppBar(title: Text('@${widget.username}')),
+        body: const Center(child: Text('User not found')),
       );
     }
 
@@ -271,8 +268,8 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                 _user!.displayName.isNotEmpty
                                     ? _user!.displayName[0].toUpperCase()
                                     : _user!.username.isNotEmpty
-                                        ? _user!.username[0].toUpperCase()
-                                        : 'U',
+                                    ? _user!.username[0].toUpperCase()
+                                    : 'U',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -296,23 +293,27 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                           // Action Buttons Row
                           Row(
                             children: [
-                              const SizedBox(width: 80), // Space for profile pic
+                              const SizedBox(
+                                width: 80,
+                              ), // Space for profile pic
                               const Spacer(),
                               if (_isCurrentUser()) ...[
                                 OutlinedButton(
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Edit profile coming soon!'),
+                                        content: Text(
+                                          'Edit profile coming soon!',
+                                        ),
                                       ),
                                     );
                                   },
                                   style: OutlinedButton.styleFrom(
                                     side: BorderSide(
-                                      color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color ??
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color ??
                                           Colors.black,
                                     ),
                                     shape: RoundedRectangleBorder(
@@ -325,7 +326,10 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                 // Message Button
                                 OutlinedButton.icon(
                                   onPressed: _startConversation,
-                                  icon: const Icon(Icons.message_outlined, size: 18),
+                                  icon: const Icon(
+                                    Icons.message_outlined,
+                                    size: 18,
+                                  ),
                                   label: const Text('Message'),
                                   style: OutlinedButton.styleFrom(
                                     side: BorderSide(
@@ -343,7 +347,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Follow feature coming soon!'),
+                                        content: Text(
+                                          'Follow feature coming soon!',
+                                        ),
                                       ),
                                     );
                                   },
@@ -352,13 +358,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                         ? Theme.of(context).cardColor
                                         : AppTheme.twitterBlue,
                                     foregroundColor: _isFollowing
-                                        ? Theme.of(context).textTheme.bodyLarge?.color
+                                        ? Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color
                                         : Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),
-                                  child: Text(_isFollowing ? 'Following' : 'Follow'),
+                                  child: Text(
+                                    _isFollowing ? 'Following' : 'Follow',
+                                  ),
                                 ),
                               ],
                             ],
@@ -389,7 +399,9 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                               Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -412,16 +424,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                       TextSpan(
                                         text: '${_user!.followingCount ?? 0} ',
                                         style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       TextSpan(
                                         text: 'Following',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
                                       ),
                                     ],
                                   ),
@@ -438,16 +451,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
                                       TextSpan(
                                         text: '${_user!.followersCount ?? 0} ',
                                         style: TextStyle(
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       TextSpan(
                                         text: 'Followers',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
                                       ),
                                     ],
                                   ),
@@ -475,11 +489,7 @@ class _UserProfileScreenState extends State<UserProfileScreen>
         body: TabBarView(
           controller: _tabController,
           physics: const BouncingScrollPhysics(),
-          children: [
-            _buildTweetsTab(),
-            _buildRepliesTab(),
-            _buildLikesTab(),
-          ],
+          children: [_buildTweetsTab(), _buildRepliesTab(), _buildLikesTab()],
         ),
       ),
     );
@@ -507,13 +517,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             Icon(Icons.article_outlined, size: 80, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              _isCurrentUser() ? 'No tweets yet' : '@${widget.username} hasn\'t tweeted yet',
+              _isCurrentUser()
+                  ? 'No tweets yet'
+                  : '@${widget.username} hasn\'t tweeted yet',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text(_isCurrentUser() 
-                ? 'Start tweeting to see your posts here!' 
-                : 'When they do, their tweets will show up here.'),
+            Text(
+              _isCurrentUser()
+                  ? 'Start tweeting to see your posts here!'
+                  : 'When they do, their tweets will show up here.',
+            ),
           ],
         ),
       );
@@ -550,13 +564,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             Icon(Icons.reply_all_outlined, size: 80, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              _isCurrentUser() ? 'No replies yet' : '@${widget.username} hasn\'t replied yet',
+              _isCurrentUser()
+                  ? 'No replies yet'
+                  : '@${widget.username} hasn\'t replied yet',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text(_isCurrentUser() 
-                ? 'Your replies will show up here' 
-                : 'When they reply to tweets, those replies will show up here.'),
+            Text(
+              _isCurrentUser()
+                  ? 'Your replies will show up here'
+                  : 'When they reply to tweets, those replies will show up here.',
+            ),
           ],
         ),
       );
@@ -593,13 +611,17 @@ class _UserProfileScreenState extends State<UserProfileScreen>
             Icon(Icons.favorite_outline, size: 80, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              _isCurrentUser() ? 'No likes yet' : '@${widget.username} hasn\'t liked any tweets yet',
+              _isCurrentUser()
+                  ? 'No likes yet'
+                  : '@${widget.username} hasn\'t liked any tweets yet',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text(_isCurrentUser() 
-                ? 'Tap the heart on any Tweet to show it some love' 
-                : 'When they like tweets, those tweets will show up here.'),
+            Text(
+              _isCurrentUser()
+                  ? 'Tap the heart on any Tweet to show it some love'
+                  : 'When they like tweets, those tweets will show up here.',
+            ),
           ],
         ),
       );
@@ -616,8 +638,18 @@ class _UserProfileScreenState extends State<UserProfileScreen>
 
   String _formatJoinDate(DateTime date) {
     final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.year}';
   }

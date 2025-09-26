@@ -10,6 +10,8 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/message_bubble.dart';
 import '../../widgets/message_composer.dart';
 import '../../widgets/reply_composer.dart';
+import '../../services/call_service.dart';
+import '../../screens/call/call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final Conversation conversation;
@@ -28,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   bool _otherUserOnline = false;
   Timer? _onlineStatusTimer;
-  
+
   // Reply state
   Message? _replyingToMessage;
   bool _showReplyComposer = false;
@@ -47,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Setup pagination
     _scrollController.addListener(_onScroll);
-    
+
     // Initialize online status checking
     _startOnlineStatusCheck();
   }
@@ -70,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _onlineStatusTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _checkOtherUserOnlineStatus();
     });
-    
+
     // Initial check
     _checkOtherUserOnlineStatus();
   }
@@ -78,7 +80,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void _checkOtherUserOnlineStatus() {
     final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
     if (currentUser != null && !widget.conversation.isGroup) {
-      final otherParticipant = widget.conversation.getOtherParticipant(currentUser.id);
+      final otherParticipant = widget.conversation.getOtherParticipant(
+        currentUser.id,
+      );
       if (otherParticipant != null) {
         // Here you would implement actual online status check via WebSocket or API
         // For now, we'll show online when WebSocket is connected
@@ -170,21 +174,27 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                       }
-                      
+
                       // Improved online status logic
                       String statusText;
                       Color statusColor;
-                      
+
                       if (widget.conversation.isGroup) {
-                        statusText = messageProvider.isWebSocketConnected ? 'Active' : 'Inactive';
-                        statusColor = messageProvider.isWebSocketConnected ? Colors.green : Colors.grey.shade600;
+                        statusText = messageProvider.isWebSocketConnected
+                            ? 'Active'
+                            : 'Inactive';
+                        statusColor = messageProvider.isWebSocketConnected
+                            ? Colors.green
+                            : Colors.grey.shade600;
                       } else {
                         // For direct messages, show more realistic status
                         if (messageProvider.isWebSocketConnected) {
                           // Check if the other user was recently active
                           final lastActivity = widget.conversation.lastActivity;
-                          final timeDiff = DateTime.now().difference(lastActivity);
-                          
+                          final timeDiff = DateTime.now().difference(
+                            lastActivity,
+                          );
+
                           if (timeDiff.inMinutes < 5) {
                             statusText = 'Online';
                             statusColor = Colors.green;
@@ -203,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           statusColor = Colors.grey.shade600;
                         }
                       }
-                      
+
                       return Row(
                         children: [
                           Container(
@@ -217,10 +227,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           const SizedBox(width: 4),
                           Text(
                             statusText,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: statusColor,
-                            ),
+                            style: TextStyle(fontSize: 12, color: statusColor),
                           ),
                         ],
                       );
@@ -234,19 +241,11 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.videocam_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Video call feature coming soon!')),
-              );
-            },
+            onPressed: () => _startVideoCall(),
           ),
           IconButton(
             icon: const Icon(Icons.call_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Voice call feature coming soon!')),
-              );
-            },
+            onPressed: () => _startVoiceCall(),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -276,10 +275,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 value: 'mute',
                 child: Text('Mute conversation'),
               ),
-              const PopupMenuItem(
-                value: 'clear',
-                child: Text('Clear chat'),
-              ),
+              const PopupMenuItem(value: 'clear', child: Text('Clear chat')),
               const PopupMenuItem(
                 value: 'delete',
                 child: Text('Delete conversation'),
@@ -429,7 +425,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
 
     print('Sending message: "$content"');
-    
+
     _messageProvider.sendMessage(
       widget.conversation.id,
       content,
@@ -444,7 +440,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (content.trim().isEmpty || _replyingToMessage == null) return;
 
     print('Sending reply: "$content" to message: ${_replyingToMessage!.id}');
-    
+
     final success = await _messageProvider.sendMessage(
       widget.conversation.id,
       content,
@@ -454,10 +450,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (success) {
       // Reply sent successfully
       _cancelReply();
-      
+
       // Provide haptic feedback
       HapticFeedback.lightImpact();
-      
+
       // Scroll to bottom to show new reply
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
@@ -471,7 +467,9 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to send reply. Please try again.')),
+        const SnackBar(
+          content: Text('Failed to send reply. Please try again.'),
+        ),
       );
     }
   }
@@ -481,11 +479,13 @@ class _ChatScreenState extends State<ChatScreen> {
       _replyingToMessage = message;
       _showReplyComposer = true;
     });
-    
+
     // Provide haptic feedback
     HapticFeedback.lightImpact();
-    
-    print('Replying to message: ${message.id} from ${message.displaySenderName}');
+
+    print(
+      'Replying to message: ${message.id} from ${message.displaySenderName}',
+    );
   }
 
   void _cancelReply() {
@@ -543,22 +543,41 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 8),
               Text('Participants: ${widget.conversation.participants.length}'),
               const SizedBox(height: 16),
-              const Text('Members:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...widget.conversation.participants.map((participant) => 
-                Padding(
+              const Text(
+                'Members:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              ...widget.conversation.participants.map(
+                (participant) => Padding(
                   padding: const EdgeInsets.only(left: 16, top: 4),
                   child: Text('• ${participant.displayName}'),
                 ),
               ),
             ] else ...[
-              final currentUser = Provider.of<AuthProvider>(context, listen: false).user;
-              final otherParticipant = widget.conversation.getOtherParticipant(currentUser?.id ?? '');
-              Text(
-                'Direct message with ${otherParticipant?.displayName ?? "Unknown User"}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              // Corrected else block using spread operator
+              Builder(
+                builder: (context) {
+                  final currentUser = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  ).user;
+                  final otherParticipant = widget.conversation
+                      .getOtherParticipant(currentUser?.id ?? '');
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Direct message with ${otherParticipant?.displayName ?? "Unknown User"}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Username: @${otherParticipant?.username ?? "unknown"}',
+                      ),
+                    ],
+                  );
+                },
               ),
-              const SizedBox(height: 8),
-              Text('Username: @${otherParticipant?.username ?? "unknown"}'),
             ],
             const SizedBox(height: 16),
             Text(
@@ -596,7 +615,9 @@ class _ChatScreenState extends State<ChatScreen> {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close chat screen
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Delete conversation feature coming soon!')),
+                const SnackBar(
+                  content: Text('Delete conversation feature coming soon!'),
+                ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -624,7 +645,9 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Clear chat feature coming soon!')),
+                const SnackBar(
+                  content: Text('Clear chat feature coming soon!'),
+                ),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -633,5 +656,83 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _startVideoCall() async {
+    final callService = Provider.of<CallService>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Get the other participant (not the current user)
+    final otherParticipant = widget.conversation.participants.firstWhere(
+      (p) => p.id != authProvider.user!.id,
+    );
+
+    try {
+      final callId = await callService.startCall(
+        otherParticipant.id,
+        CallType.video,
+      );
+
+      if (callId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              remoteUserId: otherParticipant.id,
+              remoteUserName: otherParticipant.displayName,
+              callType: CallType.video,
+              callId: callId,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to start video call')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error starting video call: $e')));
+    }
+  }
+
+  Future<void> _startVoiceCall() async {
+    final callService = Provider.of<CallService>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    // Get the other participant (not the current user)
+    final otherParticipant = widget.conversation.participants.firstWhere(
+      (p) => p.id != authProvider.user!.id,
+    );
+
+    try {
+      final callId = await callService.startCall(
+        otherParticipant.id,
+        CallType.voice,
+      );
+
+      if (callId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CallScreen(
+              remoteUserId: otherParticipant.id,
+              remoteUserName: otherParticipant.displayName,
+              callType: CallType.voice,
+              callId: callId,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to start voice call')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error starting voice call: $e')));
+    }
   }
 }

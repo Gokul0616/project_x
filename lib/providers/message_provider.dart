@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:logging/logging.dart';
 import '../models/message_model.dart';
 import '../models/conversation_model.dart';
 import '../services/api_service.dart';
@@ -146,11 +147,7 @@ class MessageProvider with ChangeNotifier {
   void _handleNewMessage(Message message) {
     final conversationId = message.conversationId;
     
-    print('MessageProvider: Received new message via WebSocket');
-    print('  messageId: ${message.id}');
-    print('  conversationId: $conversationId');
-    print('  senderId: ${message.senderId}');
-    print('  content: "${message.content}"');
+    Logger('MessageProvider').info('Received new message via WebSocket: ${message.id}');
     
     // Add message to conversation messages
     final messages = _conversationMessages[conversationId] ?? [];
@@ -283,7 +280,8 @@ class MessageProvider with ChangeNotifier {
       }
     } catch (e) {
       _conversationsError = 'Network error: $e';
-    } finally {
+    }
+    finally {
       _isLoadingConversations = false;
       notifyListeners();
     }
@@ -311,7 +309,7 @@ class MessageProvider with ChangeNotifier {
         throw Exception(response['message'] ?? 'Failed to create conversation');
       }
     } catch (e) {
-      print('Error creating conversation: $e');
+      Logger('MessageProvider').severe('Error creating conversation', e);
       return null;
     }
   }
@@ -349,7 +347,8 @@ class MessageProvider with ChangeNotifier {
 
         if (newMessages.isEmpty) {
           _hasMoreMessages[conversationId] = false;
-        } else {
+        }
+        else {
           if (refresh) {
             _conversationMessages[conversationId] = newMessages;
           } else {
@@ -366,7 +365,8 @@ class MessageProvider with ChangeNotifier {
       }
     } catch (e) {
       _messageErrors[conversationId] = 'Network error: $e';
-    } finally {
+    }
+    finally {
       _loadingMessages[conversationId] = false;
       notifyListeners();
     }
@@ -383,9 +383,7 @@ class MessageProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print('MessageProvider: Sending message via HTTP API');
-      print('  conversationId: $conversationId');
-      print('  content: "$content"');
+      Logger('MessageProvider').info('Sending message via HTTP API for conversation $conversationId');
       
       // Always use HTTP API for now to ensure message consistency
       final response = await ApiService.sendMessage(
@@ -395,15 +393,12 @@ class MessageProvider with ChangeNotifier {
         replyToId: replyToId,
       );
 
-      print('MessageProvider: Response received: ${response['success']}');
+      Logger('MessageProvider').info('Response received: ${response['success']}');
       
       if (response['success']) {
         final newMessage = Message.fromJson(response['message']);
         
-        print('MessageProvider: New message created');
-        print('  messageId: ${newMessage.id}');
-        print('  senderId: ${newMessage.senderId}');
-        print('  content: "${newMessage.content}"');
+        Logger('MessageProvider').info('New message created: ${newMessage.id}');
         
         // Add message to conversation
         final messages = _conversationMessages[conversationId] ?? [];
@@ -424,9 +419,10 @@ class MessageProvider with ChangeNotifier {
         throw Exception(response['message'] ?? 'Failed to send message');
       }
     } catch (e) {
-      print('Error sending message: $e');
+      Logger('MessageProvider').severe('Error sending message', e);
       return false;
-    } finally {
+    }
+    finally {
       _sendingMessage[conversationId] = false;
       notifyListeners();
     }
@@ -452,7 +448,7 @@ class MessageProvider with ChangeNotifier {
             .toList();
       }
     } catch (e) {
-      print('Error marking conversation as read: $e');
+      Logger('MessageProvider').severe('Error marking conversation as read', e);
     }
   }
 
@@ -475,7 +471,7 @@ class MessageProvider with ChangeNotifier {
         throw Exception(response['message'] ?? 'Failed to delete message');
       }
     } catch (e) {
-      print('Error deleting message: $e');
+      Logger('MessageProvider').severe('Error deleting message', e);
       return false;
     }
   }
@@ -502,7 +498,7 @@ class MessageProvider with ChangeNotifier {
         throw Exception(response['message'] ?? 'Failed to react to message');
       }
     } catch (e) {
-      print('Error reacting to message: $e');
+      Logger('MessageProvider').severe('Error reacting to message', e);
       return false;
     }
   }

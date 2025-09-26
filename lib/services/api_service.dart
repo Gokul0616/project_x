@@ -132,7 +132,9 @@ class ApiService {
         if (lastTweetId != null) 'lastTweetId': lastTweetId,
       };
 
-      final uri = Uri.parse('$baseUrl/tweets').replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/tweets',
+      ).replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: {
@@ -143,7 +145,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Handle both old format (List) and new format (Map with metadata)
         if (data is List) {
           return {
@@ -153,7 +155,9 @@ class ApiService {
           };
         } else {
           return {
-            'tweets': (data['tweets'] as List).map((json) => Tweet.fromJson(json)).toList(),
+            'tweets': (data['tweets'] as List)
+                .map((json) => Tweet.fromJson(json))
+                .toList(),
             'timestamp': data['timestamp'],
             'hasMore': data['hasMore'] ?? true,
             'isNewContent': data['isNewContent'] ?? false,
@@ -186,7 +190,9 @@ class ApiService {
         'refresh': refresh.toString(),
       };
 
-      final uri = Uri.parse('$baseUrl/tweets/recommended').replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/tweets/recommended',
+      ).replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: {
@@ -197,7 +203,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Handle both old format (List) and new format (Map with metadata)
         if (data is List) {
           return {
@@ -206,7 +212,9 @@ class ApiService {
           };
         } else {
           return {
-            'tweets': (data['tweets'] as List).map((json) => Tweet.fromJson(json)).toList(),
+            'tweets': (data['tweets'] as List)
+                .map((json) => Tweet.fromJson(json))
+                .toList(),
             'timestamp': data['timestamp'],
             'hasMore': data['hasMore'] ?? true,
           };
@@ -219,7 +227,9 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkForNewTweets(DateTime lastTimestamp) async {
+  static Future<Map<String, dynamic>> checkForNewTweets(
+    DateTime lastTimestamp,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -228,9 +238,9 @@ class ApiService {
         throw Exception('No authentication token found');
       }
 
-      final uri = Uri.parse('$baseUrl/tweets/check-new').replace(queryParameters: {
-        'timestamp': lastTimestamp.toIso8601String(),
-      });
+      final uri = Uri.parse('$baseUrl/tweets/check-new').replace(
+        queryParameters: {'timestamp': lastTimestamp.toIso8601String()},
+      );
 
       final response = await http.get(
         uri,
@@ -250,7 +260,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> trackInteraction(String tweetId, String interactionType) async {
+  static Future<Map<String, dynamic>> trackInteraction(
+    String tweetId,
+    String interactionType,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -287,7 +300,10 @@ class ApiService {
     return result['tweets'] as List<Tweet>;
   }
 
-  static Future<List<Tweet>> getRecommendedTweets({int page = 1, int limit = 10}) async {
+  static Future<List<Tweet>> getRecommendedTweets({
+    int page = 1,
+    int limit = 10,
+  }) async {
     final result = await getEnhancedRecommendations(page: page, limit: limit);
     return result['tweets'] as List<Tweet>;
   }
@@ -810,7 +826,11 @@ class ApiService {
   }
 
   // Lists Methods
-  static Future<List<Map<String, dynamic>>> getLists({String type = 'user', int page = 1, int limit = 20}) async {
+  static Future<List<Map<String, dynamic>>> getLists({
+    String type = 'user',
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -846,7 +866,11 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> createList(String name, {String description = '', bool isPrivate = false}) async {
+  static Future<Map<String, dynamic>> createList(
+    String name, {
+    String description = '',
+    bool isPrivate = false,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -873,14 +897,22 @@ class ApiService {
         return {'success': true, 'list': data};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to create list'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to create list',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  static Future<Map<String, dynamic>> updateList(String listId, {String? name, String? description, bool? isPrivate}) async {
+  static Future<Map<String, dynamic>> updateList(
+    String listId, {
+    String? name,
+    String? description,
+    bool? isPrivate,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -908,7 +940,10 @@ class ApiService {
         return {'success': true, 'list': data};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to update list'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to update list',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -936,7 +971,10 @@ class ApiService {
         return {'success': true, 'message': 'List deleted successfully'};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to delete list'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to delete list',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -962,10 +1000,17 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': data['message'], 'isPinned': data['isPinned']};
+        return {
+          'success': true,
+          'message': data['message'],
+          'isPinned': data['isPinned'],
+        };
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to pin list'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to pin list',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -973,7 +1018,11 @@ class ApiService {
   }
 
   // Bookmarks Methods
-  static Future<List<Tweet>> getBookmarks({int page = 1, int limit = 20, String sortBy = 'date'}) async {
+  static Future<List<Tweet>> getBookmarks({
+    int page = 1,
+    int limit = 20,
+    String sortBy = 'date',
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1031,7 +1080,10 @@ class ApiService {
         return {'success': true, 'message': data['message']};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to bookmark tweet'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to bookmark tweet',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -1060,7 +1112,10 @@ class ApiService {
         return {'success': true, 'message': data['message']};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to remove bookmark'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to remove bookmark',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -1068,7 +1123,12 @@ class ApiService {
   }
 
   // Moments Methods
-  static Future<List<Map<String, dynamic>>> getMoments({String type = 'all', int page = 1, int limit = 20, String? category}) async {
+  static Future<List<Map<String, dynamic>>> getMoments({
+    String type = 'all',
+    int page = 1,
+    int limit = 20,
+    String? category,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1082,12 +1142,14 @@ class ApiService {
         'page': page.toString(),
         'limit': limit.toString(),
       };
-      
+
       if (category != null) {
         queryParams['category'] = category;
       }
 
-      final uri = Uri.parse('$baseUrl/moments').replace(queryParameters: queryParams);
+      final uri = Uri.parse(
+        '$baseUrl/moments',
+      ).replace(queryParameters: queryParams);
 
       final response = await http.get(
         uri,
@@ -1137,7 +1199,10 @@ class ApiService {
   }
 
   // Messages Methods
-  static Future<Map<String, dynamic>> getConversations({int page = 1, int limit = 20}) async {
+  static Future<Map<String, dynamic>> getConversations({
+    int page = 1,
+    int limit = 20,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1147,10 +1212,7 @@ class ApiService {
       }
 
       final uri = Uri.parse('$baseUrl/messages/conversations').replace(
-        queryParameters: {
-          'page': page.toString(),
-          'limit': limit.toString(),
-        },
+        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
       );
 
       final response = await http.get(
@@ -1166,14 +1228,19 @@ class ApiService {
         return {'success': true, 'conversations': conversations};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to load conversations'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to load conversations',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  static Future<Map<String, dynamic>> createConversation(String participantId) async {
+  static Future<Map<String, dynamic>> createConversation(
+    String participantId,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1188,9 +1255,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'participantId': participantId,
-        }),
+        body: jsonEncode({'participantId': participantId}),
       );
 
       if (response.statusCode == 201) {
@@ -1198,7 +1263,10 @@ class ApiService {
         return {'success': true, 'conversation': conversation};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to create conversation'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to create conversation',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -1218,12 +1286,15 @@ class ApiService {
         return {'success': false, 'message': 'No authentication token found'};
       }
 
-      final uri = Uri.parse('$baseUrl/messages/conversations/$conversationId/messages').replace(
-        queryParameters: {
-          'page': page.toString(),
-          'limit': limit.toString(),
-        },
-      );
+      final uri =
+          Uri.parse(
+            '$baseUrl/messages/conversations/$conversationId/messages',
+          ).replace(
+            queryParameters: {
+              'page': page.toString(),
+              'limit': limit.toString(),
+            },
+          );
 
       final response = await http.get(
         uri,
@@ -1238,7 +1309,10 @@ class ApiService {
         return {'success': true, 'messages': messages};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to load messages'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to load messages',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -1273,7 +1347,9 @@ class ApiService {
       // Add media files if provided
       if (mediaFilePaths != null && mediaFilePaths.isNotEmpty) {
         for (String filePath in mediaFilePaths) {
-          request.files.add(await http.MultipartFile.fromPath('media', filePath));
+          request.files.add(
+            await http.MultipartFile.fromPath('media', filePath),
+          );
         }
       }
 
@@ -1285,14 +1361,19 @@ class ApiService {
         return {'success': true, 'message': message};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to send message'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to send message',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  static Future<Map<String, dynamic>> markConversationAsRead(String conversationId) async {
+  static Future<Map<String, dynamic>> markConversationAsRead(
+    String conversationId,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1313,7 +1394,10 @@ class ApiService {
         return {'success': true, 'message': 'Conversation marked as read'};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to mark as read'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to mark as read',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
@@ -1341,14 +1425,20 @@ class ApiService {
         return {'success': true, 'message': 'Message deleted successfully'};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to delete message'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to delete message',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  static Future<Map<String, dynamic>> reactToMessage(String messageId, String emoji) async {
+  static Future<Map<String, dynamic>> reactToMessage(
+    String messageId,
+    String emoji,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
@@ -1363,9 +1453,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          'emoji': emoji,
-        }),
+        body: jsonEncode({'emoji': emoji}),
       );
 
       if (response.statusCode == 200) {
@@ -1373,10 +1461,253 @@ class ApiService {
         return {'success': true, 'message': message};
       } else {
         final error = jsonDecode(response.body);
-        return {'success': false, 'message': error['message'] ?? 'Failed to react to message'};
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to react to message',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  // Follow/Unfollow Methods
+  static Future<Map<String, dynamic>> followUser(String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/$username/follow'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to follow user',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> unfollowUser(String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/$username/unfollow'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to unfollow user',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getFollowStatus(String username) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/$username/follow-status'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to get follow status',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // Profile Update Methods
+  static Future<Map<String, dynamic>> updateProfile({
+    String? displayName,
+    String? bio,
+    String? website,
+    String? location,
+    DateTime? birthDate,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      final body = <String, dynamic>{};
+      if (displayName != null) body['displayName'] = displayName;
+      if (bio != null) body['bio'] = bio;
+      if (website != null) body['website'] = website;
+      if (location != null) body['location'] = location;
+      if (birthDate != null) body['birthDate'] = birthDate.toIso8601String();
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'user': User.fromJson(data['user'])};
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to update profile',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateProfileAvatar(
+    File avatarFile,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        return {'success': false, 'message': 'No authentication token found'};
+      }
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/users/profile/avatar'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(
+        await http.MultipartFile.fromPath('avatar', avatarFile.path),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'user': User.fromJson(data['user'])};
+      } else {
+        final error = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to update avatar',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // Generic HTTP request helper
+  static Future<http.Response> makeRequest(
+    String method,
+    String endpoint, [
+    Map<String, dynamic>? body,
+  ]) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final uri = Uri.parse('$baseUrl$endpoint');
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      http.Response response;
+
+      switch (method.toUpperCase()) {
+        case 'GET':
+          response = await http.get(uri, headers: headers);
+          break;
+        case 'POST':
+          response = await http.post(
+            uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          );
+          break;
+        case 'PUT':
+          response = await http.put(
+            uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          );
+          break;
+        case 'PATCH':
+          response = await http.patch(
+            uri,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          );
+          break;
+        case 'DELETE':
+          response = await http.delete(uri, headers: headers);
+          break;
+        default:
+          throw Exception('Unsupported HTTP method: $method');
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Network error: $e');
     }
   }
 }

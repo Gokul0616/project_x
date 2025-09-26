@@ -195,7 +195,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
-  Widget _buildQuickActionCard(String title, IconData icon, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Container(
       width: 120,
       margin: const EdgeInsets.only(right: 12),
@@ -212,7 +216,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -232,7 +239,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppTheme.twitterBlue.withOpacity(0.1),
+            color: AppTheme.twitterBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(topic.icon, color: AppTheme.twitterBlue),
@@ -248,10 +255,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             const SizedBox(height: 4),
             Text(
               '${topic.articleCount} articles • ${topic.category}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -287,10 +291,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
-            ...List.generate(topic.articleCount, (index) => 
-              Padding(
+            ...List.generate(
+              topic.articleCount,
+              (index) => Padding(
                 padding: const EdgeInsets.only(left: 16, bottom: 4),
-                child: Text('• Article ${index + 1}: How to use ${topic.title.toLowerCase()}'),
+                child: Text(
+                  '• Article ${index + 1}: How to use ${topic.title.toLowerCase()}',
+                ),
               ),
             ),
           ],

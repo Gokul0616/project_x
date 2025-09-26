@@ -8,15 +8,15 @@ import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/upload_provider.dart';
 import 'providers/message_provider.dart';
+import 'services/call_service.dart';
 import 'services/notification_service.dart';
-import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize notification service
   await NotificationService.initialize();
-  
+
   runApp(const PulseApp());
 }
 
@@ -27,15 +27,16 @@ class PulseApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => TweetProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => UploadProvider()),
-        ChangeNotifierProvider(create: (_) => MessageProvider()),
+        ChangeNotifierProvider<ThemeProvider>(create: (BuildContext context) => ThemeProvider()),
+        ChangeNotifierProvider<AuthProvider>(create: (BuildContext context) => AuthProvider()),
+        ChangeNotifierProvider<TweetProvider>(create: (BuildContext context) => TweetProvider()),
+        ChangeNotifierProvider<NotificationProvider>(create: (BuildContext context) => NotificationProvider()),
+        ChangeNotifierProvider<UploadProvider>(create: (BuildContext context) => UploadProvider()),
+        ChangeNotifierProvider<MessageProvider>(create: (BuildContext context) => MessageProvider()),
+        ChangeNotifierProvider<CallService>(create: (BuildContext context) => CallService()),
       ],
       child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
+        builder: (BuildContext context, ThemeProvider themeProvider, Widget? child) {
           return MaterialApp(
             title: 'Pulse',
             theme: themeProvider.currentTheme,
@@ -54,7 +55,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
+      builder: (BuildContext context, AuthProvider authProvider, Widget? child) {
         if (authProvider.isAuthenticated) {
           return const MainScreen();
         } else {
