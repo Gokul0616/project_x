@@ -36,6 +36,9 @@ class CallService extends ChangeNotifier {
 
   // Socket connection
   IO.Socket? _socket;
+  
+  // User ID cache
+  String? _currentUserId;
 
   // Getters
   CallState get callState => _callState;
