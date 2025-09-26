@@ -28,7 +28,9 @@ void main() async {
 }
 
 class PulseApp extends StatelessWidget {
-  const PulseApp({super.key});
+  final CallService callService;
+  
+  const PulseApp({super.key, required this.callService});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +42,7 @@ class PulseApp extends StatelessWidget {
         ChangeNotifierProvider<NotificationProvider>(create: (BuildContext context) => NotificationProvider()),
         ChangeNotifierProvider<UploadProvider>(create: (BuildContext context) => UploadProvider()),
         ChangeNotifierProvider<MessageProvider>(create: (BuildContext context) => MessageProvider()),
-        ChangeNotifierProvider<CallService>(create: (BuildContext context) => CallService()),
+        ChangeNotifierProvider<CallService>.value(value: callService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (BuildContext context, ThemeProvider themeProvider, Widget? child) {
