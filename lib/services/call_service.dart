@@ -307,10 +307,21 @@ class CallService extends ChangeNotifier {
     }
   }
 
-  String _getCurrentUserId() {
-    // This should be implemented to get the current user's ID
-    // For now, return a placeholder
-    return 'current_user_id';
+  String? _getCurrentUserId() {
+    // Try to get user ID from cached value first
+    if (_currentUserId != null) {
+      return _currentUserId;
+    }
+    
+    // If not cached, we'll need to get it from auth provider or shared preferences
+    // For now, this will be set during initialization
+    Logger('CallService').warning('Current user ID not available');
+    return null;
+  }
+
+  // Helper method to set current user ID
+  void setCurrentUserId(String userId) {
+    _currentUserId = userId;
   }
 
   // Call controls
