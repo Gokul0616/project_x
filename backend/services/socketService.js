@@ -261,6 +261,46 @@ module.exports = (io) => {
         }
       });
     });
+
+    // WebRTC Signaling handlers
+    socket.on('webrtc_offer', (data) => {
+      const { callId, offer, toUserId } = data;
+      console.log(`WebRTC offer from ${userId} to ${toUserId} for call ${callId}`);
+      
+      // Forward offer to recipient
+      io.to(`user_${toUserId}`).emit('webrtc_offer', {
+        callId,
+        offer,
+        from: userId,
+        timestamp: new Date()
+      });
+    });
+
+    socket.on('webrtc_answer', (data) => {
+      const { callId, answer, toUserId } = data;
+      console.log(`WebRTC answer from ${userId} to ${toUserId} for call ${callId}`);
+      
+      // Forward answer to caller
+      io.to(`user_${toUserId}`).emit('webrtc_answer', {
+        callId,
+        answer,
+        from: userId,
+        timestamp: new Date()
+      });
+    });
+
+    socket.on('webrtc_ice_candidate', (data) => {
+      const { callId, candidate, toUserId } = data;
+      console.log(`ICE candidate from ${userId} to ${toUserId} for call ${callId}`);
+      
+      // Forward ICE candidate to other participant
+      io.to(`user_${toUserId}`).emit('webrtc_ice_candidate', {
+        callId,
+        candidate,
+        from: userId,
+        timestamp: new Date()
+      });
+    });
   });
 
   // Export function to send notifications to specific users
